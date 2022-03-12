@@ -1,106 +1,80 @@
-# return all moves that can beat rivals, moves and rival_move should be same type
-import collections
+# return a list of all moves that can beat an opponent
+from .env.utils import *
 
-def common_handle(moves, rival_move):
+# `moves` is a list of a move of a particular type (eg pair) where each element is a move represented by a list of integer ids
+# `opponent_move` is a list of integer ids corresponding to the cards in the move an opponent has made
+def compare_max(moves, opponent_move):
     new_moves = list()
     for move in moves:
-        if move[0] > rival_move[0]:
+        # since each move is given in ascending order, only compare the highest card for singles, pairs, triples, full houses and quads
+        if move[len(move)-1] > opponent_move[len(move)-1]:
             new_moves.append(move)
     return new_moves
 
-def filter_type_1_single(moves, rival_move):
-    return common_handle(moves, rival_move)
+def filter_type_1_single(moves, opponent_move):
+    return compare_max(moves, opponent_move)
 
+def filter_type_2_pair(moves, opponent_move):
+    return compare_max(moves, opponent_move)
 
-def filter_type_2_pair(moves, rival_move):
-    return common_handle(moves, rival_move)
+def filter_type_3_triple(moves, opponent_move):
+    return compare_max(moves, opponent_move)
 
-
-def filter_type_3_triple(moves, rival_move):
-    return common_handle(moves, rival_move)
-
-
-def filter_type_4_bomb(moves, rival_move):
-    return common_handle(moves, rival_move)
-
-# No need to filter for type_5_king_bomb
-
-def filter_type_6_3_1(moves, rival_move):
-    rival_move.sort()
-    rival_rank = rival_move[1]
-    new_moves = list()
+def filter_type_4_straight(moves, opponent_move):
+    new_moves = []
     for move in moves:
-        move.sort()
-        my_rank = move[1]
-        if my_rank > rival_rank:
+        move_ranks = set(map(lambda x: x//4, move))
+        opp_move_ranks = set(map(lambda x: x//4, opponent_move))
+        
+        move_straight_index = -1
+        opp_straight_index = -1
+        
+        for s_i in range(len(STRAIGHT_ORDERS)):
+            if len(move_ranks.intersection(STRAIGHT_ORDERS[s_i]))==5:
+                move_straight_index = s_i
+            if len(opp_move_ranks.intersection(STRAIGHT_ORDERS[s_i]))==5:
+                opp_straight_index = s_i
+                
+        if move_straight_index==-1 or opp_straight_index==-1:
+            raise Exception("Someone doesn't have a straight")
+        
+        if move_straight_index > opp_straight_index: # new move has higher straight rank
             new_moves.append(move)
+        elif move_straight_index == opp_straight_index: # same rank but move has higher suit
+            if move[len(move)-1] > opponent_move[len(move)-1]:
+                new_moves.append(move)
+        
+    return new_moves
+        
+def filter_type_5_flush(moves, opponent_move):
+    new_moves = []
+    for move in moves:
+        if FLUSH_ORDERBY_SUIT and FLUSH_ORDERBY_RANK:
+            raise Exception("inconsistent settings for flush ranking")
+            
+        if FLUSH_ORDERBY_SUIT: # first compare by suit, then by rank
+            if (list(map(lambda x: x%4, move))[0] > list(map(lambda x: x%4, opponent_move))[0]):
+                new_moves.append(move)
+            elif (list(map(lambda x: x%4, move))[0] == list(map(lambda x: x%4, opponent_move))[0]):
+                if move[len(move)-1] > opponent_move[len(move)-1]: # if both flushes of the same suit the winner is the one with higher rank
+                    new_moves.append(move)
+                    
+        elif FLUSH_ORDERBY_RANK: # first compare by rank, then by suit
+            move_ranks = list(map(lambda x: x//4, move))[::-1]
+            opp_move_ranks = list(map(lambda x: x//4, opponent_move))[::-1]
+            if move_ranks > opponent_move_ranks: # does elementwise comparison of the ranks in each flush in descending order
+                new_moves.append(move)
+            elif move_ranks == opponent_move_ranks:
+                if move[len(move)-1] > opponent_move[len(move)-1]:
+                    new_moves.append(move)
+                    
     return new_moves
 
-def filter_type_7_3_2(moves, rival_move):
-    rival_move.sort()
-    rival_rank = rival_move[2]
-    new_moves = list()
-    for move in moves:
-        move.sort()
-        my_rank = move[2]
-        if my_rank > rival_rank:
-            new_moves.append(move)
-    return new_moves
+def filter_type_6_fullhouse(moves, opponent_move):
+    return compare_max(moves, opponent_move)
 
-def filter_type_8_serial_single(moves, rival_move):
-    return common_handle(moves, rival_move)
+def filter_type_7_quads(moves, opponent_move):
+    return compare_max(moves, opponent_move)
 
-def filter_type_9_serial_pair(moves, rival_move):
-    return common_handle(moves, rival_move)
-
-def filter_type_10_serial_triple(moves, rival_move):
-    return common_handle(moves, rival_move)
-
-def filter_type_11_serial_3_1(moves, rival_move):
-    rival = collections.Counter(rival_move)
-    rival_rank = max([k for k, v in rival.items() if v == 3])
-    new_moves = list()
-    for move in moves:
-        mymove = collections.Counter(move)
-        my_rank = max([k for k, v in mymove.items() if v == 3])
-        if my_rank > rival_rank:
-            new_moves.append(move)
-    return new_moves
-
-def filter_type_12_serial_3_2(moves, rival_move):
-    rival = collections.Counter(rival_move)
-    rival_rank = max([k for k, v in rival.items() if v == 3])
-    new_moves = list()
-    for move in moves:
-        mymove = collections.Counter(move)
-        my_rank = max([k for k, v in mymove.items() if v == 3])
-        if my_rank > rival_rank:
-            new_moves.append(move)
-    return new_moves
-
-def filter_type_13_4_2(moves, rival_move):
-    rival_move.sort()
-    rival_rank = rival_move[2]
-    new_moves = list()
-    for move in moves:
-        move.sort()
-        my_rank = move[2]
-        if my_rank > rival_rank:
-            new_moves.append(move)
-    return new_moves
-
-def filter_type_14_4_22(moves, rival_move):
-    rival = collections.Counter(rival_move)
-    rival_rank = my_rank = 0
-    for k, v in rival.items():
-        if v == 4:
-            rival_rank = k
-    new_moves = list()
-    for move in moves:
-        mymove = collections.Counter(move)
-        for k, v in mymove.items():
-            if v == 4:
-                my_rank = k
-        if my_rank > rival_rank:
-            new_moves.append(move)
-    return new_moves
+def filter_type_8_straightflush(moves, opponent_move):
+    return filter_type_4_straight(moves, opponent_move)
