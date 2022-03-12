@@ -1,17 +1,44 @@
-from douzero.env.utils import MIN_SINGLE_CARDS, MIN_PAIRS, MIN_TRIPLES, select
 import collections
 import itertools
+from .utils import STRAIGHT_ORDERS
+
+# determine if a list of length 5 (each element corresponding to a card value) is a valid straight but not SF
+def is_valid_straight(input_combination):
+    global STRAIGHT_ORDERS
+    # convert each card value to its rank, and check if each rank in the input combo has the same values as a potential straight
+    # here [0,1,2,11,12] should return True since it contains the same values as [11,12,0,1,2]
+    if set(map(lambda x: x//4, input_combination)).intersection(STRAIGHT_ORDERS):
+        if len(set(map(lambda x: x % 4, input_combination)))==1: # check if all have same suits, if yes return false
+            return False
+        else:
+            return True
+    else:
+        return False
+    
+# determine if a list of length 5 (each element corresponding to a card value) is a valid flush but not SF
+def is_valid_flush(input_combination):
+    if len(set(map(lambda x: x % 4, input_combination)))==1: # check if all have same suits, if yes return true
+        if set(map(lambda x: x//4, input_combination)).intersection(STRAIGHT_ORDERS):
+            return False
+        else:
+            return True
+    else:
+        return False
+    
+# determine if a list of length 5 (each element corresponding to a card value) is a valid SF
+def is_valid_straight_flush(input_combination):
+    if set(map(lambda x: x//4, input_combination)).intersection(STRAIGHT_ORDERS) and 
+    len(set(map(lambda x: x % 4, input_combination)))==1: # technically don't need 2nd condition since self.flush_moves guarantees it. but Python uses lazy evaluation so it's fine
+        return True
+    else:
+        return False
 
 class MovesGener(object):
     """
-    This is for generating the possible combinations
+    Generates the possible moves a given hand can make
     """
-    def __init__(self, cards_list):
+    def __init__(self, cards_list): # cards_list is a sorted list of integers with each element from 0-51 inclusive (in ascending order eg [3, 9, 24, 28, 30, 31])
         self.cards_list = cards_list
-        self.cards_dict = collections.defaultdict(int)
-
-        for i in self.cards_list:
-            self.cards_dict[i] += 1
 
         self.single_card_moves = []
         self.gen_type_1_single()
@@ -19,184 +46,117 @@ class MovesGener(object):
         self.gen_type_2_pair()
         self.triple_cards_moves = []
         self.gen_type_3_triple()
-        self.bomb_moves = []
-        self.gen_type_4_bomb()
-        self.final_bomb_moves = []
-        self.gen_type_5_king_bomb()
-
-    def _gen_serial_moves(self, cards, min_serial, repeat=1, repeat_num=0):
-        if repeat_num < min_serial:  # at least repeat_num is min_serial
-            repeat_num = 0
-
-        single_cards = sorted(list(set(cards)))
-        seq_records = list()
-        moves = list()
-
-        start = i = 0
-        longest = 1
-        while i < len(single_cards):
-            if i + 1 < len(single_cards) and single_cards[i + 1] - single_cards[i] == 1:
-                longest += 1
-                i += 1
-            else:
-                seq_records.append((start, longest))
-                i += 1
-                start = i
-                longest = 1
-
-        for seq in seq_records:
-            if seq[1] < min_serial:
-                continue
-            start, longest = seq[0], seq[1]
-            longest_list = single_cards[start: start + longest]
-
-            if repeat_num == 0:  # No limitation on how many sequences
-                steps = min_serial
-                while steps <= longest:
-                    index = 0
-                    while steps + index <= longest:
-                        target_moves = sorted(longest_list[index: index + steps] * repeat)
-                        moves.append(target_moves)
-                        index += 1
-                    steps += 1
-
-            else:  # repeat_num > 0
-                if longest < repeat_num:
-                    continue
-                index = 0
-                while index + repeat_num <= longest:
-                    target_moves = sorted(longest_list[index: index + repeat_num] * repeat)
-                    moves.append(target_moves)
-                    index += 1
-
-        return moves
-
+        self.flush_moves = []
+        self.gen_type_5_flush()
+    
+    # returns a list of lists. Each list consists of a single element corresponding to integer id of that card
     def gen_type_1_single(self):
         self.single_card_moves = []
-        for i in set(self.cards_list):
+        for i in self.cards_list:
             self.single_card_moves.append([i])
         return self.single_card_moves
-
+    
+    # returns a list of lists. Each list consists of 2 elements in ascending order, each corresponding to the integer id of the cards in a possible pair
     def gen_type_2_pair(self):
         self.pair_moves = []
-        for k, v in self.cards_dict.items():
-            if v >= 2:
-                self.pair_moves.append([k, k])
+        # for each card, check to see if 1 of the following 3 cards in the sorted list have the same rank. 
+        for i in range(len(self.cards_list)):
+            for j in range(1,4):
+                if i+j > len(self.cards_list) - 1:
+                    break
+                if (self.cards_list[i] // 4) == (self.cards_list[i+j] // 4):
+                    self.pair_moves.append([self.cards_list[i], self.cards_list[i+j]])
+                else: # break out of loop early since if j=1 not same rank for instance then j=2 guaranteed not to be same rank
+                    break
         return self.pair_moves
 
+    # returns a list of lists. Each list consists of 3 elements in ascending order, each corresponding to the integer id of the cards in a possible triple
     def gen_type_3_triple(self):
         self.triple_cards_moves = []
-        for k, v in self.cards_dict.items():
-            if v >= 3:
-                self.triple_cards_moves.append([k, k, k])
+        # for each card, check to see if 2 of the following 3 cards in the sorted list have the same rank. 
+        # suppose in the hand there exist cards w, x, y, z with the same rank.
+        # Then wxy, wyz, wxz will get added when i is the index for card w, and xyz will get added when i is the index for card x.
+        for i in range(len(self.cards_list)):
+            if i+2 > len(self.cards_list) - 1: # if currently on 2nd last index, no more triples possible
+                break
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
+               ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)):
+                self.triple_cards_moves.append([self.cards_list[i],
+                                                self.cards_list[i+1],
+                                                self.cards_list[i+2]
+                                               ])
+                
+            if i+3 > len(self.cards_list) - 1:  # if currently on 3rd last index, no more triples possible besides the last 3 cards (accounted for above)
+                break
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and
+               ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
+                self.triple_cards_moves.append([self.cards_list[i],
+                                                self.cards_list[i+2],
+                                                self.cards_list[i+3]
+                                               ])
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
+               ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
+                self.triple_cards_moves.append([self.cards_list[i],
+                                                self.cards_list[i+1],
+                                                self.cards_list[i+3]
+                                               ])
         return self.triple_cards_moves
+    
+    # returns a list of lists. Each list consists of 5 elements corresponding to the 5 cards that make up a potential straight (but NOT SF)
+    # no guarantee of ascending order
+    def gen_type_4_straight(self):
+        # TODO: need to stress test this function's performance for a hand like 3334445566777 or 3344455667788
+        # worst comes to worst manually generate a massive lookup dictionary and use that lmao
+        result = list()
+        # https://stackoverflow.com/questions/27150990/python-itertools-combinations-how-to-obtain-the-indices-of-the-combined-numbers
+        five_card_moves = list(itertools.combinations(self.cards_list, 5)) # generate all 5 card combos
+        result.append(filter(is_valid_straight, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        # here it generates all combinations of 5 cards that are valid straights
+        return result
+    
+    # returns a list of lists. Each list consists of 5 elements corresponding to the 5 cards that make up a potential flush (but NOT SF)
+    # no guarantee of ascending order
+    def gen_type_5_flush(self):
+        # TODO: need to stress test this function's performance for a hand like A23456789TJQK all hearts
+        self.flush_moves = []
+        five_card_moves = list(itertools.combinations(self.cards_list, 5)) # generate all 5 card combos
+        result.append(filter(is_valid_flush, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        # here it generates all combinations of 5 cards that are valid flushes
+        return self.flush_moves
 
-    def gen_type_4_bomb(self):
-        self.bomb_moves = []
-        for k, v in self.cards_dict.items():
-            if v == 4:
-                self.bomb_moves.append([k, k, k, k])
-        return self.bomb_moves
-
-    def gen_type_5_king_bomb(self):
-        self.final_bomb_moves = []
-        if 20 in self.cards_list and 30 in self.cards_list:
-            self.final_bomb_moves.append([20, 30])
-        return self.final_bomb_moves
-
-    def gen_type_6_3_1(self):
-        result = []
-        for t in self.single_card_moves:
-            for i in self.triple_cards_moves:
-                if t[0] != i[0]:
+    # returns a list of lists. Each list consists of 5 elements in ascending order, first 3 to the triple, last 2 to the pair.
+    def gen_type_6_fullhouse(self):
+        result = list()
+        for t in self.triple_cards_moves: # triples rarer than pairs so search those first (slight optimization)
+            for i in self.pair_moves:
+                if (t[0] // 4) != (i[0] // 4): # need them to not be the same rank
                     result.append(t+i)
         return result
 
-    def gen_type_7_3_2(self):
+    # returns a list of lists. Each list consists of 4 elements in ascending order, each corresponding to the integer id of the cards in a possible quad
+    def gen_type_7_quads(self):
         result = list()
-        for t in self.pair_moves:
-            for i in self.triple_cards_moves:
-                if t[0] != i[0]:
-                    result.append(t+i)
+        # for each card, check to see if each of the following 3 cards in the sorted list have the same rank. 
+        for i in range(len(self.cards_list)):
+            if self.cards_list[i] % 4 != 0: # a quad of a rank must include the lowest card in that rank
+                continue
+            
+            if i+3 > len(self.cards_list) - 1: # if currently on 3rd last index or after, no more quads possible
+                break
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
+               ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and
+               ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
+                self.triple_cards_moves.append([self.cards_list[i],
+                                                self.cards_list[i+1],
+                                                self.cards_list[i+2],
+                                                self.cards_list[i+3]
+                                               ])
         return result
 
-    def gen_type_8_serial_single(self, repeat_num=0):
-        return self._gen_serial_moves(self.cards_list, MIN_SINGLE_CARDS, repeat=1, repeat_num=repeat_num)
-
-    def gen_type_9_serial_pair(self, repeat_num=0):
-        single_pairs = list()
-        for k, v in self.cards_dict.items():
-            if v >= 2:
-                single_pairs.append(k)
-
-        return self._gen_serial_moves(single_pairs, MIN_PAIRS, repeat=2, repeat_num=repeat_num)
-
-    def gen_type_10_serial_triple(self, repeat_num=0):
-        single_triples = list()
-        for k, v in self.cards_dict.items():
-            if v >= 3:
-                single_triples.append(k)
-
-        return self._gen_serial_moves(single_triples, MIN_TRIPLES, repeat=3, repeat_num=repeat_num)
-
-    def gen_type_11_serial_3_1(self, repeat_num=0):
-        serial_3_moves = self.gen_type_10_serial_triple(repeat_num=repeat_num)
-        serial_3_1_moves = list()
-
-        for s3 in serial_3_moves:  # s3 is like [3,3,3,4,4,4]
-            s3_set = set(s3)
-            new_cards = [i for i in self.cards_list if i not in s3_set]
-
-            # Get any s3_len items from cards
-            subcards = select(new_cards, len(s3_set))
-
-            for i in subcards:
-                serial_3_1_moves.append(s3 + i)
-
-        return list(k for k, _ in itertools.groupby(serial_3_1_moves))
-
-    def gen_type_12_serial_3_2(self, repeat_num=0):
-        serial_3_moves = self.gen_type_10_serial_triple(repeat_num=repeat_num)
-        serial_3_2_moves = list()
-        pair_set = sorted([k for k, v in self.cards_dict.items() if v >= 2])
-
-        for s3 in serial_3_moves:
-            s3_set = set(s3)
-            pair_candidates = [i for i in pair_set if i not in s3_set]
-
-            # Get any s3_len items from cards
-            subcards = select(pair_candidates, len(s3_set))
-            for i in subcards:
-                serial_3_2_moves.append(sorted(s3 + i * 2))
-
-        return serial_3_2_moves
-
-    def gen_type_13_4_2(self):
-        four_cards = list()
-        for k, v in self.cards_dict.items():
-            if v == 4:
-                four_cards.append(k)
-
+    # returns a list of lists. Each list consists of 5 elements, each corresponding to the integer id of the cards in a possible SF
+    def gen_type_8_straightflush(self):
         result = list()
-        for fc in four_cards:
-            cards_list = [k for k in self.cards_list if k != fc]
-            subcards = select(cards_list, 2)
-            for i in subcards:
-                result.append([fc]*4 + i)
-        return list(k for k, _ in itertools.groupby(result))
-
-    def gen_type_14_4_22(self):
-        four_cards = list()
-        for k, v in self.cards_dict.items():
-            if v == 4:
-                four_cards.append(k)
-
-        result = list()
-        for fc in four_cards:
-            cards_list = [k for k, v in self.cards_dict.items() if k != fc and v>=2]
-            subcards = select(cards_list, 2)
-            for i in subcards:
-                result.append([fc] * 4 + [i[0], i[0], i[1], i[1]])
+        result.append(filter(is_valid_straight_flush), self.flush_moves)
         return result
 
     # generate all possible moves from given cards
@@ -205,15 +165,9 @@ class MovesGener(object):
         moves.extend(self.gen_type_1_single())
         moves.extend(self.gen_type_2_pair())
         moves.extend(self.gen_type_3_triple())
-        moves.extend(self.gen_type_4_bomb())
-        moves.extend(self.gen_type_5_king_bomb())
-        moves.extend(self.gen_type_6_3_1())
-        moves.extend(self.gen_type_7_3_2())
-        moves.extend(self.gen_type_8_serial_single())
-        moves.extend(self.gen_type_9_serial_pair())
-        moves.extend(self.gen_type_10_serial_triple())
-        moves.extend(self.gen_type_11_serial_3_1())
-        moves.extend(self.gen_type_12_serial_3_2())
-        moves.extend(self.gen_type_13_4_2())
-        moves.extend(self.gen_type_14_4_22())
+        moves.extend(self.gen_type_4_straight())
+        moves.extend(self.gen_type_5_flush())
+        moves.extend(self.gen_type_6_fullhouse())
+        moves.extend(self.gen_type_7_quads())
+        moves.extend(self.gen_type_8_straightflush())
         return moves
