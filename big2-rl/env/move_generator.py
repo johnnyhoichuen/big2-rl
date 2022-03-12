@@ -39,7 +39,7 @@ def is_valid_straight_flush(input_combination):
 
 class MovesGener(object):
     """
-    Generates the possible moves a given hand can make
+    Generates the possible moves a given hand can make.
     """
     def __init__(self, cards_list): # cards_list is a sorted list of integers with each element from 0-51 inclusive (in ascending order eg [3, 9, 24, 28, 30, 31])
         self.cards_list = cards_list
@@ -107,7 +107,7 @@ class MovesGener(object):
         return self.triple_cards_moves
     
     # returns a list of lists. Each list consists of 5 elements corresponding to the 5 cards that make up a potential straight (but NOT SF)
-    # no guarantee of ascending order
+    # if input hands are sorted in ascending order, the move's cards will be sorted in ascending order 3 < ... < 2
     def gen_type_4_straight(self):
         # TODO: need to stress test this function's performance for a hand like 3334445566777 or 3344455667788
         # worst comes to worst manually generate a massive lookup dictionary and use that lmao
@@ -119,25 +119,25 @@ class MovesGener(object):
         return result
     
     # returns a list of lists. Each list consists of 5 elements corresponding to the 5 cards that make up a potential flush (but NOT SF)
-    # no guarantee of ascending order
+    # if input hands are sorted in ascending order, the move's cards will be sorted in ascending order 3 < ... < 2
     def gen_type_5_flush(self):
         # TODO: need to stress test this function's performance for a hand like A23456789TJQK all hearts
         self.flush_moves = []
         five_card_moves = list(itertools.combinations(self.cards_list, 5)) # generate all 5 card combos
-        result.append(filter(is_valid_flush, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        self.flush_moves.append(filter(is_valid_flush, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid flushes
         return self.flush_moves
 
-    # returns a list of lists. Each list consists of 5 elements in ascending order, first 3 to the triple, last 2 to the pair.
+    # returns a list of lists. Each list consists of 5 elements in ascending order, first 2 to the pair, last 3 to the triple.
     def gen_type_6_fullhouse(self):
         result = list()
         for t in self.triple_cards_moves: # triples rarer than pairs so search those first (slight optimization)
-            for i in self.pair_moves:
-                if (t[0] // 4) != (i[0] // 4): # need them to not be the same rank
-                    result.append(t+i)
+            for p in self.pair_moves:
+                if (t[0] // 4) != (p[0] // 4): # need them to not be the same rank
+                    result.append(p+t)
         return result
 
-    # returns a list of lists. Each list consists of 4 elements in ascending order, each corresponding to the integer id of the cards in a possible quad
+    # returns a list of lists. Each list consists of 5 elements, with the 1st element being the integer id of the kicker, and the other 4 being the integer id of the cards in a possible quad
     def gen_type_7_quads(self):
         result = list()
         # for each card, check to see if each of the following 3 cards in the sorted list have the same rank. 
@@ -150,11 +150,12 @@ class MovesGener(object):
             if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
                ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and
                ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
-                self.triple_cards_moves.append([self.cards_list[i],
-                                                self.cards_list[i+1],
-                                                self.cards_list[i+2],
-                                                self.cards_list[i+3]
-                                               ])
+                # if we found potential quads, find every possible kicker (has to be of different rank)
+                for j in range(len(self.cards_list)):
+                    if (self.cards_list[j] // 4) == (self.cards_list[i] // 4):
+                        continue
+                    kicker = self.cards_list[j]
+                    result.append([kicker, self.cards_list[i], self.cards_list[i+1], self.cards_list[i+2], self.cards_list[i+3]])
         return result
 
     # returns a list of lists. Each list consists of 5 elements, each corresponding to the integer id of the cards in a possible SF
