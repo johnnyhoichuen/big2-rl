@@ -9,3 +9,19 @@ TYPE_6_FULLHOUSE = 6
 TYPE_7_QUADS = 7
 TYPE_8_STRAIGHTFLUSH = 8
 TYPE_9_WRONG = 9
+
+# a list of the rankings of the valid straights
+# default: 34567 < 45678 < ... < TJQKA < 23456 < A2345
+# JQKA2 is not a valid straight
+STRAIGHT_ORDERS = [
+    [range(0,5)], # ranks 0-4 corresponds to 34567
+    [range(1,6)],
+    [range(2,7)],
+    [range(3,8)],
+    [range(4,9)],
+    [range(5,10)],
+    [range(6,11)],
+    [range(7,12)], # ranks 7-11 corresponds to TJQKA
+    [12,0,1,2,3], # 23456
+    [11,12,0,1,2] # A2345
+]
