@@ -28,5 +28,6 @@ STRAIGHT_ORDERS = [
 
 # if FLUSH_ORDERBY_RANK is used 2h Qh Jh 9h 4h > 2s Qs Ts 7s 6s
 # if FLUSH_ORDERBY_SUIT is used 2h Qh Jh 9h 4h < 2s Qs Ts 7s 6s since spade > heart > club > diamond
-FLUSH_ORDERBY_RANK = 1
-FLUSH_ORDERBY_SUIT = 2
+# note that only one of these settings can be true at any given time!
+FLUSH_ORDERBY_RANK = True
+FLUSH_ORDERBY_SUIT = False
