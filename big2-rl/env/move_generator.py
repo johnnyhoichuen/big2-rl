@@ -114,7 +114,7 @@ class MovesGener(object):
         result = list()
         # https://stackoverflow.com/questions/27150990/python-itertools-combinations-how-to-obtain-the-indices-of-the-combined-numbers
         five_card_moves = list(itertools.combinations(self.cards_list, 5)) # generate all 5 card combos
-        result.append(filter(is_valid_straight, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        result.extend(filter(is_valid_straight, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid straights
         return result
     
@@ -124,7 +124,7 @@ class MovesGener(object):
         # TODO: need to stress test this function's performance for a hand like A23456789TJQK all hearts
         self.flush_moves = []
         five_card_moves = list(itertools.combinations(self.cards_list, 5)) # generate all 5 card combos
-        self.flush_moves.append(filter(is_valid_flush, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        self.flush_moves.extend(filter(is_valid_flush, five_card_moves)) # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid flushes
         return self.flush_moves
 
@@ -161,7 +161,7 @@ class MovesGener(object):
     # returns a list of lists. Each list consists of 5 elements, each corresponding to the integer id of the cards in a possible SF
     def gen_type_8_straightflush(self):
         result = list()
-        result.append(filter(is_valid_straight_flush), self.flush_moves)
+        result.extend(filter(is_valid_straight_flush), self.flush_moves)
         return result
 
     # generate all possible moves from given cards
