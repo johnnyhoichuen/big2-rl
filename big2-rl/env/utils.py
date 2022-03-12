@@ -25,3 +25,8 @@ STRAIGHT_ORDERS = [
     [12,0,1,2,3], # 23456
     [11,12,0,1,2] # A2345
 ]
+
+# if FLUSH_ORDERBY_RANK is used 2h Qh Jh 9h 4h > 2s Qs Ts 7s 6s
+# if FLUSH_ORDERBY_SUIT is used 2h Qh Jh 9h 4h < 2s Qs Ts 7s 6s since spade > heart > club > diamond
+FLUSH_ORDERBY_RANK = 1
+FLUSH_ORDERBY_SUIT = 2
