@@ -1,4 +1,4 @@
-from douzero.env.utils import *
+from .env.utils import *
 import collections
 
 # check if move is a continuous sequence
