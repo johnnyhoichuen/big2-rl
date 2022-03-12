@@ -44,7 +44,7 @@ def get_move_type(move):
             return {'type': TYPE_9_WRONG}
 
     if move_size == 5:
-        move_ranks = move // 4 # gets the ranks eg [2s 2h 2c 3h 3d] = [51, 50, 49, 6, 4] = [12 12 12 1 1]
+        move_ranks = list(map(lambda x: x//4, move)) # gets the ranks eg [2s 2h 2c 3h 3d] = [51, 50, 49, 6, 4] = [12 12 12 1 1]
         move_ranks_dict = collections.Counter(move_ranks) # gets number of each rank eg {12: 3, 1: 2}
         
         if len(move_ranks_dict) == 2: # full house or quads
@@ -59,7 +59,7 @@ def get_move_type(move):
         elif len(move_ranks_dict) == 5: # straight, flush or SF
             
             # check flush
-            move_suits = move % 13 # eg [Ah Qh Th 6h 5h] = [46 38 30 14 10] = [2 2 2 2 2]
+            move_suits = list(map(lambda x: x%4, move)) # eg [Ah Qh Th 6h 5h] = [46 38 30 14 10] = [2 2 2 2 2]
             move_suits_dict = collections.Counter(move_suits) # gets number of each suit
             
             # check straight
