@@ -1,4 +1,3 @@
-import collections
 import itertools
 from .utils import STRAIGHT_ORDERS
 
