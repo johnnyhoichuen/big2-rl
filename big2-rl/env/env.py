@@ -1,7 +1,7 @@
 from collections import Counter
 import numpy as np
 
-from douzero.env.game import GameEnv
+from .env.game import GameEnv
 
 Card2Column = {3: 0, 4: 1, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7,
                11: 8, 12: 9, 13: 10, 14: 11, 17: 12}
@@ -12,11 +12,8 @@ NumOnes2Array = {0: np.array([0, 0, 0, 0]),
                  3: np.array([1, 1, 1, 0]),
                  4: np.array([1, 1, 1, 1])}
 
-deck = []
-for i in range(3, 15):
-    deck.extend([i for _ in range(4)])
-deck.extend([17 for _ in range(4)])
-deck.extend([20, 30])
+deck = [range(0, 52)]
+
 
 class Env:
     """

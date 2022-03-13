@@ -1,9 +1,8 @@
 import itertools
-from .utils import STRAIGHT_ORDERS
+from .utils import *
 
 # determine if a list of length 5 (each element corresponding to a card value) is a valid straight but not SF
 def is_valid_straight(input_combination):
-    global STRAIGHT_ORDERS
     # convert each card value to its rank, and check if each rank in the input combo has the same values as a potential straight
     # here [0,1,2,11,12] should return True since it contains the same values as [11,12,0,1,2]
     for possible_straight in STRAIGHT_ORDERS:
@@ -14,10 +13,10 @@ def is_valid_straight(input_combination):
                 return True
         else:
             return False
-    
+
+
 # determine if a list of length 5 (each element corresponding to a card value) is a valid flush but not SF
 def is_valid_flush(input_combination):
-    global STRAIGHT_ORDERS
     if len(set(map(lambda x: x % 4, input_combination)))==1: # check if all have same suits, if yes return true
         for possible_straight in STRAIGHT_ORDERS:
             if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight))==5:
@@ -26,16 +25,17 @@ def is_valid_flush(input_combination):
                 return True
     else:
         return False
-    
+
+
 # determine if a list of length 5 (each element corresponding to a card value) is a valid SF
 def is_valid_straight_flush(input_combination):
-    global STRAIGHT_ORDERS
     for possible_straight in STRAIGHT_ORDERS:
         if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight))==5:
             # technically don't need the flush condition since self.flush_moves guarantees it
             return True
         else:
             return False
+
 
 class MovesGener(object):
     """
@@ -83,7 +83,7 @@ class MovesGener(object):
         for i in range(len(self.cards_list)):
             if i+2 > len(self.cards_list) - 1: # if currently on 2nd last index, no more triples possible
                 break
-            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and \
                ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)):
                 self.triple_cards_moves.append([self.cards_list[i],
                                                 self.cards_list[i+1],
@@ -92,13 +92,13 @@ class MovesGener(object):
                 
             if i+3 > len(self.cards_list) - 1:  # if currently on 3rd last index, no more triples possible besides the last 3 cards (accounted for above)
                 break
-            if ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and \
                ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
                 self.triple_cards_moves.append([self.cards_list[i],
                                                 self.cards_list[i+2],
                                                 self.cards_list[i+3]
                                                ])
-            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and \
                ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
                 self.triple_cards_moves.append([self.cards_list[i],
                                                 self.cards_list[i+1],
@@ -147,8 +147,8 @@ class MovesGener(object):
             
             if i+3 > len(self.cards_list) - 1: # if currently on 3rd last index or after, no more quads possible
                 break
-            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and
-               ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and
+            if ((self.cards_list[i] // 4) == (self.cards_list[i+1] // 4)) and \
+               ((self.cards_list[i] // 4) == (self.cards_list[i+2] // 4)) and \
                ((self.cards_list[i] // 4) == (self.cards_list[i+3] // 4)):
                 # if we found potential quads, find every possible kicker (has to be of different rank)
                 for j in range(len(self.cards_list)):
@@ -161,7 +161,7 @@ class MovesGener(object):
     # returns a list of lists. Each list consists of 5 elements, each corresponding to the integer id of the cards in a possible SF
     def gen_type_8_straightflush(self):
         result = list()
-        result.extend(filter(is_valid_straight_flush), self.flush_moves)
+        result.extend(filter(is_valid_straight_flush, self.flush_moves))
         return result
 
     # generate all possible moves from given cards

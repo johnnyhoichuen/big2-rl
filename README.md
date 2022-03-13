@@ -2,7 +2,7 @@
 
 Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia.org/wiki/Big_two) (Cantonese: 鋤大弟), a four-player card-shedding game popular in many Southeast Asia countries played with a standard 52-card deck without jokers.
 
-Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads"" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
+Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
 
 In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa. 
 
@@ -24,14 +24,6 @@ Make sure you have python 3.6+ installed. Install dependencies:
 cd big2-rl
 pip3 install -r requirements.txt
 ```
-We recommend installing the stable version of Big2-RL with
-```
-pip3 install big2-rl
-```
-or install the up-to-date version (it could be not stable) with
-```
-pip3 install -e .
-```
 Note that Windows users can only use CPU as actors. See [Issues in Windows](README.md#issues-in-windows) about why GPUs are not supported.
 
 ## Training [TODO]
@@ -41,7 +33,7 @@ python3 train.py
 ```
 This will train DouZero on one GPU. To train DouZero on multiple GPUs. Use the following arguments.
 *   `--gpu_devices`: what gpu devices are visible
-*   `--num_actor_devices`: how many of the GPU deveices will be used for simulation, i.e., self-play
+*   `--num_actor_devices`: how many of the GPU devices will be used for simulation, i.e., self-play
 *   `--num_actors`: how many actor processes will be used for each device
 *   `--training_device`: which device will be used for training DouZero
 
@@ -102,7 +94,7 @@ For more customized configuration of training, see the following optional argume
 ```
 
 ## Evaluation [TODO]
-The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available at [Google Drive](https://drive.google.com/drive/folders/1NmM2cXnI5CIWHaLJeoDZMiwt6lOTV_UB?usp=sharing) or [百度网盘](https://pan.baidu.com/s/18g-JUKad6D8rmBONXUDuOQ), 提取码: 4624. Put pre-trained weights in `baselines/`. The performance is evaluated through self-play. We have provided pre-trained models and some heuristics as baselines:
+The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available at [Google Drive](https://drive.google.com/drive/folders/1NmM2cXnI5CIWHaLJeoDZMiwt6lOTV_UB?usp=sharing) or [百度网盘](https://pan.baidu.com/s/18g-JUKad6D8rmBONXUDuOQ), 提取码: 4624. Put pretrained weights in `baselines/`. The performance is evaluated through self-play. We have provided pretrained models and some heuristics as baselines:
 *   [random](douzero/evaluation/random_agent.py): agents that play randomly (uniformly)
 *   [rlcard](douzero/evaluation/rlcard_agent.py): the rule-based agent in [RLCard](https://github.com/datamllab/rlcard)
 *   SL (`baselines/sl/`): the pre-trained deep agents on human data
@@ -155,6 +147,6 @@ If you find this project helpful in your research, please cite our paper:
 
 TODO
 
-## Acknowlegements [TODO incomplete]
+## Acknowledgments [TODO incomplete]
 *   Zha, Daochen et al. “DouZero: Mastering DouDizhu with Self-Play Deep Reinforcement Learning.” ICML (2021).
 

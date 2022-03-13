@@ -1,4 +1,4 @@
-from .env.utils import *
+from .utils import *
 import collections
 
 # check if move is a continuous sequence
@@ -23,7 +23,6 @@ def get_move_type(move):
     # in general, for a card of rank S (S in [0, 12]) and suit H (H in [0, 3]), S*4 + H is that card's integer representation
     
     move_size = len(move)
-    move_dict = collections.Counter(move)
 
     if move_size == 0:
         return {'type': TYPE_0_PASS}
@@ -32,7 +31,7 @@ def get_move_type(move):
         return {'type': TYPE_1_SINGLE}
 
     if move_size == 2:
-        if ((move[0] // 4) == (move[1] // 4)): # if same rank
+        if (move[0] // 4) == (move[1] // 4): # if same rank
             return {'type': TYPE_2_PAIR, 'rank': max(move[0], move[1])}
         else: # two cards can only be played as a pair
             return {'type': TYPE_9_WRONG}

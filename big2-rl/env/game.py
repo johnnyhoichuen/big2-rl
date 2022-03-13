@@ -2,65 +2,83 @@ from copy import deepcopy
 from . import move_detector as md, move_selector as ms
 from .move_generator import MovesGener
 
-EnvCard2RealCard = {3: '3', 4: '4', 5: '5', 6: '6', 7: '7',
-                    8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q',
-                    13: 'K', 14: 'A', 17: '2', 20: 'X', 30: 'D'}
-
-RealCard2EnvCard = {'3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
-                    '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12,
-                    'K': 13, 'A': 14, '2': 17, 'X': 20, 'D': 30}
-
-bombs = [[3, 3, 3, 3], [4, 4, 4, 4], [5, 5, 5, 5], [6, 6, 6, 6],
-         [7, 7, 7, 7], [8, 8, 8, 8], [9, 9, 9, 9], [10, 10, 10, 10],
-         [11, 11, 11, 11], [12, 12, 12, 12], [13, 13, 13, 13], [14, 14, 14, 14],
-         [17, 17, 17, 17], [20, 30]]
 
 class GameEnv(object):
-
+    """
+    GameEnv object describes the game environment for one deal of Big 2
+    directly used by `./env.py` and `../evaluation/simulation.py`
+    """
     def __init__(self, players):
 
+        # (list of int) stores list of the cards played so far
         self.card_play_action_seq = []
 
-        self.three_landlord_cards = None
+        # (bool) whether the current deal is over
         self.game_over = False
 
+        # (String) storing the acting player (one of 'south', 'east', 'north', 'west') aka SENW
         self.acting_player_position = None
-        self.player_utility_dict = None
 
+        # (dict String : int) that stores the rewards for each player in SENW positions
+        self.player_reward_dict = None
+
+        # (dict String : Agent) stores the agent for each of the SENW positions
         self.players = players
 
-        self.last_move_dict = {'landlord': [],
-                               'landlord_up': [],
-                               'landlord_down': []}
+        # (dict String : list of int) stores the integer ids of the cards played in the last move made by each position
+        self.last_move_dict = {'south': [],
+                               'east': [],
+                               'north': [],
+                               'west': []}
 
-        self.played_cards = {'landlord': [],
-                             'landlord_up': [],
-                             'landlord_down': []}
+        # (dict String : list of int) stores the integer ids of ALL cards played by each position
+        self.played_cards = {'south': [],
+                             'east': [],
+                             'north': [],
+                             'west': []}
 
+        # (list of int) stores the integer ids of the cards played in the last move made
         self.last_move = []
+
+        # (list of int) stores the integer ids of the cards played in the last 2 moves made
         self.last_two_moves = []
 
-        self.num_wins = {'landlord': 0,
-                         'farmer': 0}
+        # (dict String : int) stores number of games won by each player
+        self.num_wins = {'south': [], 'east': [], 'north': [], 'west': []}
 
-        self.num_scores = {'landlord': 0,
-                           'farmer': 0}
+        # (dict String : int) stores total amount won by each player
+        self.num_scores = {'south': [], 'east': [], 'north': [], 'west': []}
 
-        self.info_sets = {'landlord': InfoSet('landlord'),
-                         'landlord_up': InfoSet('landlord_up'),
-                         'landlord_down': InfoSet('landlord_down')}
+        # (dict String : InfoSet) stores all information about the current game state
+        self.info_sets = {'south': InfoSet('south'),
+                          'east': InfoSet('east'),
+                          'north': InfoSet('north'),
+                          'west': InfoSet('west')}
 
-        self.bomb_num = 0
-        self.last_pid = 'landlord'
+        # (String) stores information about who was the previous player
+        self.last_pid = None
+
+        # (InfoSet) stores information about the information available to the current player
+        self.game_infoset = None
 
     def card_play_init(self, card_play_data):
-        self.info_sets['landlord'].player_hand_cards = \
-            card_play_data['landlord']
-        self.info_sets['landlord_up'].player_hand_cards = \
-            card_play_data['landlord_up']
-        self.info_sets['landlord_down'].player_hand_cards = \
-            card_play_data['landlord_down']
-        self.three_landlord_cards = card_play_data['three_landlord_cards']
+        """
+        initialises each player's hand cards
+
+        Arguments:
+        card_play_data:
+            dict String : list of int
+            something like 'north':deck[:13] where deck is list of int in a shuffled deck
+        """
+        self.info_sets['north'].player_hand_cards = \
+            card_play_data['north']
+        self.info_sets['east'].player_hand_cards = \
+            card_play_data['east']
+        self.info_sets['west'].player_hand_cards = \
+            card_play_data['west']
+        self.info_sets['south'].player_hand_cards = \
+            card_play_data['south']
+        # TODO need to declare the player who has the 3d is the one to start
         self.get_acting_player_position()
         self.game_infoset = self.get_infoset()
 
@@ -70,22 +88,22 @@ class GameEnv(object):
                 len(self.info_sets['landlord_down'].player_hand_cards) == 0:
             # if one of the three players discards his hand,
             # then game is over.
-            self.compute_player_utility()
+            self.compute_player_reward()
             self.update_num_wins_scores()
 
             self.game_over = True
 
-    def compute_player_utility(self):
+    def compute_player_reward(self):
 
         if len(self.info_sets['landlord'].player_hand_cards) == 0:
-            self.player_utility_dict = {'landlord': 2,
+            self.player_reward_dict = {'landlord': 2,
                                         'farmer': -1}
         else:
-            self.player_utility_dict = {'landlord': -2,
+            self.player_reward_dict = {'landlord': -2,
                                         'farmer': 1}
 
     def update_num_wins_scores(self):
-        for pos, utility in self.player_utility_dict.items():
+        for pos, utility in self.player_reward_dict.items():
             base_score = 2 if pos == 'landlord' else 1
             if utility > 0:
                 self.num_wins[pos] += 1
@@ -107,9 +125,6 @@ class GameEnv(object):
 
         if len(action) > 0:
             self.last_pid = self.acting_player_position
-
-        if action in bombs:
-            self.bomb_num += 1
 
         self.last_move_dict[
             self.acting_player_position] = action.copy()
@@ -269,7 +284,7 @@ class GameEnv(object):
         self.game_over = False
 
         self.acting_player_position = None
-        self.player_utility_dict = None
+        self.player_reward_dict = None
 
         self.last_move_dict = {'landlord': [],
                                'landlord_up': [],

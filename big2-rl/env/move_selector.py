@@ -1,5 +1,5 @@
 # return a list of all moves that can beat an opponent
-from .env.utils import *
+from .utils import *
 
 # `moves` is a list of a move of a particular type (eg pair) where each element is a move represented by a list of integer ids
 # `opponent_move` is a list of integer ids corresponding to the cards in the move an opponent has made
@@ -53,18 +53,18 @@ def filter_type_5_flush(moves, opponent_move):
             raise Exception("inconsistent settings for flush ranking")
             
         if FLUSH_ORDERBY_SUIT: # first compare by suit, then by rank
-            if (list(map(lambda x: x%4, move))[0] > list(map(lambda x: x%4, opponent_move))[0]):
+            if list(map(lambda x: x%4, move))[0] > list(map(lambda x: x%4, opponent_move))[0]:
                 new_moves.append(move)
-            elif (list(map(lambda x: x%4, move))[0] == list(map(lambda x: x%4, opponent_move))[0]):
+            elif list(map(lambda x: x%4, move))[0] == list(map(lambda x: x%4, opponent_move))[0]:
                 if move[len(move)-1] > opponent_move[len(move)-1]: # if both flushes of the same suit the winner is the one with higher rank
                     new_moves.append(move)
                     
         elif FLUSH_ORDERBY_RANK: # first compare by rank, then by suit
             move_ranks = list(map(lambda x: x//4, move))[::-1]
             opp_move_ranks = list(map(lambda x: x//4, opponent_move))[::-1]
-            if move_ranks > opponent_move_ranks: # does elementwise comparison of the ranks in each flush in descending order
+            if move_ranks > opp_move_ranks: # does elementwise comparison of the ranks in each flush in descending order
                 new_moves.append(move)
-            elif move_ranks == opponent_move_ranks:
+            elif move_ranks == opp_move_ranks:
                 if move[len(move)-1] > opponent_move[len(move)-1]:
                     new_moves.append(move)
                     
