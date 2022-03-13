@@ -61,6 +61,9 @@ class GameEnv(object):
         # (InfoSet) stores information about the information available to the current player
         self.game_infoset = None
 
+        # (String) stores information about winner of the current deal
+        self.winner = None
+
     def card_play_init(self, card_play_data):
         """
         initialises each player's hand cards
@@ -83,42 +86,49 @@ class GameEnv(object):
         self.game_infoset = self.get_infoset()
 
     def game_done(self):
-        if len(self.info_sets['landlord'].player_hand_cards) == 0 or \
-                len(self.info_sets['landlord_up'].player_hand_cards) == 0 or \
-                len(self.info_sets['landlord_down'].player_hand_cards) == 0:
-            # if one of the three players discards his hand,
-            # then game is over.
+        """
+        checks to see if a given game is over (i.e. one player has emptied their hand)
+        """
+        if len(self.info_sets['north'].player_hand_cards) == 0 or \
+                len(self.info_sets['east'].player_hand_cards) == 0 or \
+                len(self.info_sets['west'].player_hand_cards) == 0 or \
+                len(self.info_sets['south'].player_hand_cards) == 0:
             self.compute_player_reward()
-            self.update_num_wins_scores()
-
             self.game_over = True
 
     def compute_player_reward(self):
-
-        if len(self.info_sets['landlord'].player_hand_cards) == 0:
-            self.player_reward_dict = {'landlord': 2,
-                                        'farmer': -1}
-        else:
-            self.player_reward_dict = {'landlord': -2,
-                                        'farmer': 1}
-
-    def update_num_wins_scores(self):
-        for pos, utility in self.player_reward_dict.items():
-            base_score = 2 if pos == 'landlord' else 1
-            if utility > 0:
-                self.num_wins[pos] += 1
+        """
+        computes reward given the remaining players and updates `self.num_wins` and `self.num_scores`
+        """
+        count = 0
+        self.player_reward_dict = {}
+        positions = ["north", "east", "west", "south"]
+        for pos in positions:
+            hand_size = len(self.info_sets[pos].player_hand_cards)
+            if hand_size > 0:
+                penalty_multiplier = 1
+                for i in range(len(GameSettings.PENALTY_THRESHOLD)):
+                    if hand_size >= GameSettings.PENALTY_THRESHOLD[i]:
+                        penalty_multiplier += 1
+                # TODO more penalty multiplier logic needed here
+                self.player_reward_dict[pos] = -hand_size * penalty_multiplier
+                self.num_scores[pos] -= hand_size * penalty_multiplier
+                count += hand_size * penalty_multiplier
+            elif hand_size == 0:
                 self.winner = pos
-                self.num_scores[pos] += base_score * (2 ** self.bomb_num)
-            else:
-                self.num_scores[pos] -= base_score * (2 ** self.bomb_num)
+                self.num_wins[pos] += 1
+
+        self.player_reward_dict[self.winner] = count
+        self.num_scores[self.winner] += count
 
     def get_winner(self):
         return self.winner
 
-    def get_bomb_num(self):
-        return self.bomb_num
-
     def step(self):
+        """
+        have the current player act
+        TODO here onwards
+        """
         action = self.players[self.acting_player_position].act(
             self.game_infoset)
         assert action in self.game_infoset.legal_actions
@@ -133,16 +143,6 @@ class GameEnv(object):
         self.update_acting_player_hand_cards(action)
 
         self.played_cards[self.acting_player_position] += action
-
-        if self.acting_player_position == 'landlord' and \
-                len(action) > 0 and \
-                len(self.three_landlord_cards) > 0:
-            for card in action:
-                if len(self.three_landlord_cards) > 0:
-                    if card in self.three_landlord_cards:
-                        self.three_landlord_cards.remove(card)
-                else:
-                    break
 
         self.game_done()
         if not self.game_over:
