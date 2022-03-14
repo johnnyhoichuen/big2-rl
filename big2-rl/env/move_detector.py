@@ -10,6 +10,8 @@ def is_continuous_seq(move):
         i += 1
     return True
 
+# TODO: remove the 'rank' key in get_move_type (may be unnecessary)
+
 # return the type of the move as a dict {'type':  ENUM}
 # for TYPE_2_PAIR, TYPE_3_TRIPLE, TYPE_6_FULLHOUSE, TYPE_7_QUADS they get an additional argument 'rank' (used to compare hands of the same type)
 # PAIR: int value of highest card in the pair (in case JdJs vs JhJc)
