@@ -190,9 +190,8 @@ class GameEnv(object):
                     self.acting_player_position = pos
                     break
 
-        else:
-            ind = Position.index(self.acting_player_position)
-            self.acting_player_position = Position[(ind + 1) % 4]
+        # in case acting_player_position is set incorrectly else where
+        assert self.acting_player_position in Position
 
         return self.acting_player_position
 
