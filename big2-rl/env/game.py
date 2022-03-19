@@ -2,7 +2,14 @@ from copy import deepcopy
 from . import move_detector as md, move_selector as ms
 from .move_generator import MovesGener
 from .. import *
+from enum import Enum, unique
 
+@unique
+class Position(Enum):
+    EAST = 1,
+    SOUTH = 2,
+    WEST = 3,
+    NORTH = 4
 
 class GameEnv(object):
     """
@@ -10,7 +17,7 @@ class GameEnv(object):
     directly used by `./env.py` and `../evaluation/simulation.py`
     """
 
-    POSITIONS = ["south", "east", "north", "west"]
+    # POSITIONS = ["south", "east", "north", "west"]
 
     def __init__(self, players):
 
@@ -65,7 +72,7 @@ class GameEnv(object):
         """
         initialise/reset all dictionaries with positions (SENW) as the keys
         """
-        for pos in GameEnv.POSITIONS:
+        for pos in Position:
             self.last_move_dict[pos] = []
             self.played_cards[pos] = []
             if not reset:  # don't reset these between deals
@@ -82,7 +89,7 @@ class GameEnv(object):
             dict String : list of int
             something like 'north':deck[:13] where deck is list of int in a shuffled deck
         """
-        for pos in GameEnv.POSITIONS:
+        for pos in Position:
             self.info_sets[pos].player_hand_cards = card_play_data[pos]
 
         self.get_acting_player_position()
@@ -92,7 +99,7 @@ class GameEnv(object):
         """
         checks to see if a given game is over (i.e. one player has emptied their hand)
         """
-        for pos in GameEnv.POSITIONS:
+        for pos in Position:
             if len(self.info_sets[pos].player_hand_cards) == 0:
                 self.compute_player_reward()
                 self.game_over = True
@@ -104,7 +111,7 @@ class GameEnv(object):
         """
         count = 0
         self.player_reward_dict = {}
-        for pos in GameEnv.POSITIONS:
+        for pos in Position:
             hand_size = len(self.info_sets[pos].player_hand_cards)
             if hand_size > 0:
                 penalty_multiplier = 1
@@ -178,14 +185,13 @@ class GameEnv(object):
         updates self.acting_player_position to the next player to play
         """
         if self.acting_player_position is None:
-            for pos in GameEnv.POSITIONS:
+            for pos in Position:
                 if 0 in self.info_sets[pos].player_hand_cards:  # TODO check if this works: if player has 3d
                     self.acting_player_position = pos
                     break
 
-        else:
-            ind = GameEnv.POSITIONS.index(self.acting_player_position)
-            self.acting_player_position = GameEnv.POSITIONS[(ind + 1) % 4]
+        # in case acting_player_position is set incorrectly else where
+        assert self.acting_player_position in Position
 
         return self.acting_player_position
 
@@ -296,14 +302,14 @@ class GameEnv(object):
 
         self.info_sets[self.acting_player_position].num_cards_left_dict = \
             {pos: len(self.info_sets[pos].player_hand_cards)
-             for pos in GameEnv.POSITIONS}
+             for pos in Position}
 
         self.info_sets[self.acting_player_position].card_play_action_seq = \
             self.card_play_action_seq
 
         self.info_sets[self.acting_player_position].other_hand_cards = []
 
-        for pos in GameEnv.POSITIONS:
+        for pos in Position:
             if pos != self.acting_player_position:
                 self.info_sets[
                     self.acting_player_position].other_hand_cards += \
@@ -339,7 +345,7 @@ class InfoSet(object):
     historical moves, etc.
     """
     def __init__(self, player_position):
-        # (String) the player position (must be element of GameEnv.POSITIONS)
+        # (String) the player position (must be element of Position)
         self.player_position = player_position
         # (list of int) The hand cards of the current player
         self.player_hand_cards = None
