@@ -1,7 +1,7 @@
 import os
 import argparse
 
-from douzero.evaluation.simulation import evaluate
+from big2_rl.evaluation.simulation import evaluate
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Big2-RL')

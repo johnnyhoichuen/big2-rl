@@ -1,6 +1,6 @@
 import os
 
-from douzero.deep-mc import parser, train
+from big2_rl.deep_mc import parser, train
 
 if __name__ == '__main__':
     flags = parser.parse_args()
