@@ -6,18 +6,18 @@ from enum import Enum, unique
 
 @unique
 class Position(Enum):
-    EAST = 1,
-    SOUTH = 2,
-    WEST = 3,
-    NORTH = 4
+    # DON'T CHANGE THE VALUES or re-indexing will have to be done
+    SOUTH = 0
+    EAST = 1
+    NORTH = 2
+    WEST = 3
+
 
 class GameEnv(object):
     """
     GameEnv object describes the game environment for one deal of Big 2
     directly used by `./env.py` and `../evaluation/simulation.py`
     """
-
-    # POSITIONS = ["south", "east", "north", "west"]
 
     def __init__(self, players):
 
@@ -73,12 +73,12 @@ class GameEnv(object):
         initialise/reset all dictionaries with positions (SENW) as the keys
         """
         for pos in Position:
-            self.last_move_dict[pos] = []
-            self.played_cards[pos] = []
+            self.last_move_dict[pos.name] = []
+            self.played_cards[pos.name] = []
             if not reset:  # don't reset these between deals
-                self.num_wins[pos] = []
-                self.num_scores[pos] = []
-            self.info_sets[pos] = InfoSet(pos)
+                self.num_wins[pos.name] = []
+                self.num_scores[pos.name] = []
+            self.info_sets[pos.name] = InfoSet(pos.name)
 
     def card_play_init(self, card_play_data):
         """
@@ -90,7 +90,7 @@ class GameEnv(object):
             something like 'north':deck[:13] where deck is list of int in a shuffled deck
         """
         for pos in Position:
-            self.info_sets[pos].player_hand_cards = card_play_data[pos]
+            self.info_sets[pos.name].player_hand_cards = card_play_data[pos.name]
 
         self.get_acting_player_position()
         self.game_infoset = self.get_infoset()
@@ -100,7 +100,7 @@ class GameEnv(object):
         checks to see if a given game is over (i.e. one player has emptied their hand)
         """
         for pos in Position:
-            if len(self.info_sets[pos].player_hand_cards) == 0:
+            if len(self.info_sets[pos.name].player_hand_cards) == 0:
                 self.compute_player_reward()
                 self.game_over = True
                 break
@@ -112,19 +112,19 @@ class GameEnv(object):
         count = 0
         self.player_reward_dict = {}
         for pos in Position:
-            hand_size = len(self.info_sets[pos].player_hand_cards)
+            hand_size = len(self.info_sets[pos.name].player_hand_cards)
             if hand_size > 0:
                 penalty_multiplier = 1
                 for i in range(len(GameSettings.PENALTY_THRESHOLD)):
                     if hand_size >= GameSettings.PENALTY_THRESHOLD[i]:
                         penalty_multiplier += 1
                 # TODO more penalty multiplier logic needed here
-                self.player_reward_dict[pos] = -hand_size * penalty_multiplier
-                self.num_scores[pos] -= hand_size * penalty_multiplier
+                self.player_reward_dict[pos.name] = -hand_size * penalty_multiplier
+                self.num_scores[pos.name] -= hand_size * penalty_multiplier
                 count += hand_size * penalty_multiplier
             elif hand_size == 0:
-                self.winner = pos
-                self.num_wins[pos] += 1
+                self.winner = pos.name
+                self.num_wins[pos.name] += 1
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count
@@ -134,28 +134,34 @@ class GameEnv(object):
 
     def step(self):
         """
-        have the current player act
-        TODO
+        have the current player/agent act
         """
+        # self.players[pos] for each position pos is an Agent. each Agent defines the Agent.act() function which takes
+        # an infoset (the information available to that player) as argument and decides on a legal action to make
         action = self.players[self.acting_player_position].act(
             self.game_infoset)
         assert action in self.game_infoset.legal_actions
 
+        # if move is not pass, update the acting player to be the current one
         if len(action) > 0:
             self.last_pid = self.acting_player_position
 
+        # update self.last_move_dict
         self.last_move_dict[
             self.acting_player_position] = action.copy()
 
+        # update the sequence of moves played so far, and remove cards from the player hand used in the move
         self.card_play_action_seq.append(action)
         self.update_acting_player_hand_cards(action)
 
+        # update the set of played cards in that position
         self.played_cards[self.acting_player_position] += action
 
+        # check if game is done
         self.game_done()
         if not self.game_over:
-            self.get_acting_player_position()
-            self.game_infoset = self.get_infoset()
+            self.get_acting_player_position()  # move to the next player
+            self.game_infoset = self.get_infoset()  # update self.game_infoset
 
     def get_last_move(self):
         """
@@ -186,12 +192,12 @@ class GameEnv(object):
         """
         if self.acting_player_position is None:
             for pos in Position:
-                if 0 in self.info_sets[pos].player_hand_cards:  # TODO check if this works: if player has 3d
-                    self.acting_player_position = pos
+                if 0 in self.info_sets[pos.name].player_hand_cards:  # TODO check if this works: if player has 3d
+                    self.acting_player_position = pos.name
                     break
-
-        # in case acting_player_position is set incorrectly else where
-        assert self.acting_player_position in Position
+        else:
+            ind = Position[self.acting_player_position].value  # e.g.: given 'SOUTH' get 0
+            self.acting_player_position = Position((ind + 1) % 4).name
 
         return self.acting_player_position
 
@@ -291,17 +297,18 @@ class GameEnv(object):
 
         self.initialise_positional_dicts(reset=False)
 
-        self.last_pid = 'landlord'  # TODO
+        self.last_pid = None
 
     def get_infoset(self):
         """
         the infoset contains all the information currently available to a given player
+        however get_infoset() returns the infoset for each player to describe the total state of the game
         """
 
         # only attribute that isn't returned is self.player_hand_cards
 
         self.info_sets[self.acting_player_position].num_cards_left_dict = \
-            {pos: len(self.info_sets[pos].player_hand_cards)
+            {pos.name: len(self.info_sets[pos.name].player_hand_cards)
              for pos in Position}
 
         self.info_sets[self.acting_player_position].card_play_action_seq = \
@@ -310,10 +317,10 @@ class GameEnv(object):
         self.info_sets[self.acting_player_position].other_hand_cards = []
 
         for pos in Position:
-            if pos != self.acting_player_position:
+            if pos.name != self.acting_player_position:
                 self.info_sets[
                     self.acting_player_position].other_hand_cards += \
-                    self.info_sets[pos].player_hand_cards
+                    self.info_sets[pos.name].player_hand_cards
 
         self.info_sets[
             self.acting_player_position].legal_actions = \
@@ -345,7 +352,7 @@ class InfoSet(object):
     historical moves, etc.
     """
     def __init__(self, player_position):
-        # (String) the player position (must be element of Position)
+        # (String) the player position (must be element of Position enum)
         self.player_position = player_position
         # (list of int) The hand cards of the current player
         self.player_hand_cards = None
