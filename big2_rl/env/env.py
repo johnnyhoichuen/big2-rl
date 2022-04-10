@@ -61,11 +61,10 @@ class Env:
     def step(self, action):
         """
         step() takes as input the action, which
-        is a list of integers, and outputs the next observation,
-        reward, and a Boolean variable indicating whether the
+        is a list of integers, and outputs the next observation (a dict),
+        reward (dict: integer of the corresponding position and their rewards), and a Boolean variable 'done' indicating whether the
         current game is finished. It also returns an empty
         dictionary that is reserved to pass useful information.
-        TODO
         """
         assert action in self.infoset.legal_actions
         self.players[self._acting_player_position].set_action(action)
@@ -83,13 +82,11 @@ class Env:
 
     def _get_reward(self):
         """
-        This function is called in the end of each
-        game. It returns either 1/-1 for win/loss,
-        or ADP, i.e., every bomb will double the score.
-        TODO
+        This function is called in the end of each deal.
+        It returns a (dict String : integer) corresponding to amount won/lost by each position.
         """
         self._env.compute_player_reward()  # compute player reward then find the amount won by the winner
-        return self._env.player_reward_dict[self._game_winner]
+        return self._env.player_reward_dict
 
     # these properties are used to access attributes of the GameEnv object wrapped inside the Env instance
     @property
