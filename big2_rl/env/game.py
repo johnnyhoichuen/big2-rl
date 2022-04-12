@@ -84,6 +84,7 @@ class GameEnv(object):
     def card_play_init(self, card_play_data):
         """
         initialises each player's hand cards
+        Can be also called externally to preset the cards for a deal (in evaluation/simulation.py)
 
         Arguments:
         card_play_data:

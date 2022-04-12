@@ -75,8 +75,8 @@ def train(flags):
     which dequeues an index from free_queue and writes a batch-slice (size 'flags.batch_size') with rollout data into
     buffers[index] then enqueues index to full_queue and dequeues the next index.
 
-    Main process (learner) has many learner threads, which dequeues 'flags.batch_size' many indices from 'full_queue',
-    stacks them together into batch and moves them to GPU, puts indices back into 'free_queue', then
+    Meanwhile, each actor device has many learner threads, which dequeues 'flags.batch_size' many indices
+    from 'full_queue', stacks them together into batch and moves them to GPU, puts indices back into 'free_queue', then
     sends batch through model, compute losses, does backward pass, and updates weights.
     """
 
@@ -176,9 +176,8 @@ def train(flags):
             actor.start()
             actor_processes.append(actor)
 
-    # takes a batch and conducts learning from it (model forward -> loss calc -> backprop)
     def batch_and_learn(i, curr_device, local_lock, lock=threading.Lock()):
-        """Thread target for the learning process."""
+        """Thread target for the learning process (takes batch -> forward pass -> loss -> backprop)"""
         nonlocal frames, stats
         while frames < flags.total_frames:  # train the model for 'flags.total_frames' many frames
             batch = get_batch(free_queue[curr_device], full_queue[curr_device],
@@ -212,8 +211,10 @@ def train(flags):
             thread.start()
             threads.append(thread)
 
-    # saves model and optimizer state dict periodically: checkpointing
     def checkpoint(num_frames):
+        """
+        Saves model and optimizer state dict periodically
+        """
         if flags.disable_checkpoint:
             return
         log.info('Saving checkpoint to %s', checkpointpath)
