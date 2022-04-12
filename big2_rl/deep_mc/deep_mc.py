@@ -13,6 +13,7 @@ from .file_writer import FileWriter
 from big2_rl.deep_mc.model import Big2Model
 from .utils import get_batch, log, create_buffers, act
 
+# only save the mean episode return of one position (observed player)
 mean_episode_return_buf = deque(maxlen=100)
 
 
@@ -29,7 +30,10 @@ def learn(actor_models,
           flags,
           lock=threading.Lock()):
     """Performs a learning (optimization) step."""
-    device = torch.device('cuda:' + str(flags.training_device))
+    if flags.training_device != "cpu":
+        device = torch.device('cuda:' + str(flags.training_device))
+    else:
+        device = torch.device('cpu')
     obs_x_no_action = batch['obs_x_no_action'].to(device)
     obs_action = batch['obs_action'].to(device)
     obs_x = torch.cat((obs_x_no_action, obs_action), dim=2).float()
@@ -45,7 +49,8 @@ def learn(actor_models,
         learner_outputs = model(obs_z, obs_x, return_value=True)
         loss = compute_loss(learner_outputs['values'], target)  # compute loss
         stats = {
-            'mean_episode_return_actor': torch.mean(torch.from_numpy(mean_episode_return_buf)).item(),
+            'mean_episode_return_actor': torch.mean(
+                torch.stack([_r for _r in mean_episode_return_buf])).item(),
             'loss': loss.item(),
         }
 
@@ -105,7 +110,7 @@ def train(flags):
     models = {}
     # create model on each actor device and moves it to shared memory
     for device in device_iterator:
-        model = Big2Model().to(device)
+        model = Big2Model(device)
         model.share_memory()
         model.eval()  # actors shouldn't be training (ie receiving weight updates)
         models[device] = model
@@ -127,7 +132,7 @@ def train(flags):
         full_queue[device] = full_queue
 
     # Create learner model for training on the ONE training_device
-    learner_model = Big2Model().to(device=flags.training_device)
+    learner_model = Big2Model(flags.training_device)
 
     # Create globally shared optimizer for all positions
     optimizer = torch.optim.RMSprop(
@@ -135,7 +140,8 @@ def train(flags):
         lr=flags.learning_rate,
         momentum=flags.momentum,
         eps=flags.epsilon,
-        alpha=flags.alpha)
+        alpha=flags.alpha
+    )
 
     # Stat Keys (just 1 since all 4 positions will use the same model)
     stat_keys = [
@@ -147,18 +153,21 @@ def train(flags):
     # Load prior model and optimizer if any
     if flags.load_model and os.path.exists(checkpointpath):
         checkpoint_states = torch.load(
-            checkpointpath, map_location="cuda:" + str(flags.training_device)
+            checkpointpath,
+            map_location="cuda:" + str(flags.training_device) if flags.training_device != "cpu" else "cpu"
         )
         learner_model.load_state_dict(checkpoint_states["model_state_dict"])
         optimizer.load_state_dict(checkpoint_states["optimizer_state_dict"])
-        for device in device_iterator:
+        for device in device_iterator:  # loads actor models
             models[device].load_state_dict(learner_model.state_dict())
         stats = checkpoint_states["stats"]
         frames = checkpoint_states["frames"]
         log.info(f"Resuming preempted job, current stats:\n{stats}")
 
-    # Starting 1 actor process on each actor device
+    # Starting actor processes on each actor device
     for device in device_iterator:
+        # each actor process shares the same free queue, full queue, actor model, and buffers as all other actor
+        # processes on the same device
         for i in range(flags.num_actors):
             # target=act refers to the dmc/utils act(...) function that is called whenever the process is running
             actor = ctx.Process(
@@ -171,13 +180,13 @@ def train(flags):
     def batch_and_learn(i, curr_device, local_lock, lock=threading.Lock()):
         """Thread target for the learning process."""
         nonlocal frames, stats
-        while frames < flags.total_frames:  # train over flags.total_frames
+        while frames < flags.total_frames:  # train the model for 'flags.total_frames' many frames
             batch = get_batch(free_queue[curr_device], full_queue[curr_device],
                               buffers[curr_device],
                               flags, local_lock)
             _stats = learn(models, learner_model, batch,
                            optimizer, flags)
-            with lock:
+            with lock:  # critical section: update stats and log them for each learner thread
                 for k in _stats:
                     stats[k] = _stats[k]
                 to_log = dict(frames=frames)
@@ -185,12 +194,12 @@ def train(flags):
                 plogger.log(to_log)
                 frames += T * B
 
-    # for each actor device, put them into their free queue
+    # to start: for each actor device, put each buffer index into that device's free queue
     for device in device_iterator:
         for m in range(flags.num_buffers):
             free_queue[device].put(m)
 
-    # for each actor device, create flags.num_threads many threads and these conduct learner process
+    # for each actor device, create 'flags.num_threads' many threads and these conduct learner process
     threads = []
     locks = {}
     for device in device_iterator:
@@ -212,7 +221,7 @@ def train(flags):
         torch.save({
             'model_state_dict': learner_model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
-            "stats": stats,
+            'stats': stats,
             'flags': vars(flags),
             'frames': num_frames,
         }, checkpointpath)
@@ -237,7 +246,7 @@ def train(flags):
 
             end_time = timer()
             fps = (frames - start_frames) / (end_time - start_time)  # stores num frames computed in this time interval
-            log.info('After %i frames: @ %.1f fps (L:%.1f U:%.1f D:%.1f) Stats:\n%s',
+            log.info('After %i frames: @ %.1f fps - Stats:\n%s',
                      frames,
                      fps,
                      pprint.pformat(stats))

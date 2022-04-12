@@ -5,16 +5,16 @@ parser = argparse.ArgumentParser(description='Big2-RL')
 # General Settings
 parser.add_argument('--xpid', default='big2rl',
                     help='Experiment id (default: big2rl)')
-parser.add_argument('--save_interval', default=30, type=int,
+parser.add_argument('--save_interval', default=10, type=int,
                     help='Time interval (in minutes) at which to save the model')
 
 # Game-specific settings
 parser.add_argument('--penalise_quads', default=1, type=int,
-                    help='Multiplicative penalty for a player if they have any unplayed quads')
+                    help='Multiplicative penalty for a player if they have 1 or more unplayed quads')
 parser.add_argument('--penalise_sf', default=1, type=int,
-                    help='Multiplicative penalty for a player if they have any unplayed straight flushes')
+                    help='Multiplicative penalty for a player if they have 1 or more unplayed straight flushes')
 parser.add_argument('--penalise_deuces', default=2, type=int,
-                    help='Multiplicative penalty for a player if they have any unplayed deuces')
+                    help='Multiplicative penalty for a player if they have 1 or more unplayed deuces')
 parser.add_argument('--reward_quads', default=1, type=int,
                     help='Multiplicative reward for a player if they win and their last move was quads')
 parser.add_argument('--reward_sf', default=1, type=int,
@@ -56,7 +56,7 @@ parser.add_argument('--load_model', action='store_true',
                     help='Load an existing model')
 parser.add_argument('--disable_checkpoint', action='store_true',
                     help='Disable saving checkpoint')
-parser.add_argument('--savedir', default='douzero_checkpoints',
+parser.add_argument('--savedir', default='big2rl_checkpoints',
                     help='Root dir where experiment data will be saved')
 
 # Hyperparameters

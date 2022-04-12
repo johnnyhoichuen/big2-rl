@@ -14,9 +14,11 @@ def is_continuous_seq(move):
 
 # return the type of the move as a dict {'type':  ENUM}
 def get_move_type(move):
-    # 'move' is an array of integers corresponding to the cards played in that move. Each element is integer from 0-51 inclusive.
-    # eg [51, 49] represents the pair (2s, 2c)
-    # in general, for a card of rank S (S in [0, 12]) and suit H (H in [0, 3]), S*4 + H is that card's integer representation
+    # 'move' is an array of integers corresponding to the cards played in that move.
+    # Each element is integer from 0-51 inclusive eg [51, 49] represents the pair (2s, 2c)
+
+    # in general, for a card of rank S (S in [0, 12]) and suit H (H in [0, 3]),
+    # S*4 + H is that card's integer representation
     
     move_size = len(move)
 
@@ -39,10 +41,11 @@ def get_move_type(move):
             return {'type': TYPE_9_WRONG}
 
     if move_size == 5:
-        move_ranks = list(map(lambda x: x//4, move))  # gets the ranks eg [2s 2h 2c 3h 3d] = [51, 50, 49, 6, 4] = [12 12 12 1 1]
+        # gets the ranks eg [2s 2h 2c 3h 3d] = [51, 50, 49, 6, 4] = [12 12 12 1 1]
+        move_ranks = list(map(lambda x: x//4, move))
         move_ranks_dict = collections.Counter(move_ranks)  # gets number of each rank eg {12: 3, 1: 2}
         
-        if len(move_ranks_dict) == 2: # full house or quads
+        if len(move_ranks_dict) == 2:  # full house or quads
             if max(move_ranks_dict.values()) == 3:
                 return {'type': TYPE_6_FULLHOUSE}
             elif max(move_ranks_dict.values()) == 4:

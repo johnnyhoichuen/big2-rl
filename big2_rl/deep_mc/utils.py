@@ -20,7 +20,7 @@ log.addHandler(shandle)
 log.setLevel(logging.INFO)
 
 # Buffers are used to transfer data between actor processes
-# and learner processes. They are shared tensors in GPU
+# and learner threads on the same actor device. They are shared tensors on that device
 Buffers = typing.Dict[str, typing.List[torch.Tensor]]
 
 
@@ -30,9 +30,8 @@ def get_batch(free_queue,
               flags,
               lock):
     """
-    This function will sample a batch from the buffers based
-    on the indices received from the full queue. It will also
-    free the indices by sending it to free_queue.
+    This function will sample a batch from the buffers of a given actor device based
+    on the indices received from the full queue. It will also free the indices by sending it to free_queue.
     """
     with lock:
         indices = [full_queue.get() for _ in range(flags.batch_size)]
@@ -47,13 +46,13 @@ def get_batch(free_queue,
 
 def create_buffers(flags, device_iterator):
     """
-    We create buffers for different devices (i.e., GPU). That is, each device
-    will have shared buffers for each of the four positions.
+    We create buffers for each actor device. Each actor device shall have 'flags.num_buffers' many buffers
+    and these buffers will be shared across each of the four positions.
     """
     T = flags.unroll_length
     # according to TorchBeast IMPALA architecture: https://arxiv.org/pdf/1910.03552.pdf
     # each actor produces rollouts in an indefinite loop.
-    # A rollout consists of unroll_length many environment-agen interactions
+    # A rollout consists of unroll_length many environment-agent interactions
     # learner consumes batches of these rollouts. So the learner input takes the form:
     buffers = {}
     for device in device_iterator:
@@ -79,13 +78,16 @@ def create_buffers(flags, device_iterator):
                     _buffer = torch.empty(**specs[key]).to(torch.device('cpu')).share_memory_()
                 _buffers[key].append(_buffer)
         buffers[device] = _buffers
+    # each buffers[device] should be {'done':[tensor0, tensor1, ..., tensor_{num_buffers-1}],
+    # 'episode_return':[tensor0, tensor1, ..., tensor_{num_buffers-1}], ...}
     return buffers
 
 
 def act(i, device, free_queue, full_queue, model, buffers, flags):
     """
-    This function will run forever until we stop it. It will generate
-    data from the environment and send the data to buffer. It uses
+    This function is run by each single (of potentially multiple) actors on a given actor device.
+    It will run forever until we stop it, and generates
+    data from the environment and sends the data to the shared buffer of that actor device. It uses
     a free queue and full queue to sync with the main process.
     """
     try:
@@ -94,6 +96,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
 
         env = Environment(Env(), device)
 
+        # initialise buffers to store values for each position
         done_buf = {p.name: [] for p in Position}
         episode_return_buf = {p.name: [] for p in Position}
         target_buf = {p.name: [] for p in Position}
@@ -102,14 +105,15 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         obs_z_buf = {p.name: [] for p in Position}
         size = {p.name: 0 for p in Position}
 
-        # this reset the Env class since Environment.initial() is called
-        # 'position' is a string corresponding to current player position
+        # this will reset the Env class, since Environment.initial() is called
+        # 'position' is a string (enum name) corresponding to current player position
         # 'obs' is a dict of information available to that position
         # 'env_output' is a dict of info such as episodic reward, whether current deal is over,
         # historical actions (obs_z), and game state (obs_x_no_action)
         position, obs, env_output = env.initial()
 
-        observed_player = Position.SOUTH.name  # since positions are symmetric, we only consider this position
+        # since positions are symmetric, we only consider this position for learner
+        observed_player = Position.SOUTH.name
 
         # outer loop plays infinite deals (is never broken)
         while True:
@@ -128,11 +132,12 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position
                 size[position] += 1
-                # advance Env object by one step, asserts the action is legal, and updates position of next player and
-                # obs of current position, and gets env_output (x_no_action and z of the next player's turn)
+                # advance Env object by one step:
+                # asserts the action is legal, and updates position of next player and
+                # obs of current position, and gets env_output (x_no_action and z) of the next player's turn
                 position, obs, env_output = env.step(action)
                 if env_output['done']:  # repeat unless deal isn't done. Else compute episode return for each position
-                    for p in Position:
+                    for p in Position:  # extend 'episode_return', 'done' and 'target' buffers
                         diff = size[p.name] - len(target_buf[p.name])
                         if diff > 0:
                             done_buf[p.name].extend([False for _ in range(diff-1)])
@@ -145,9 +150,15 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                             target_buf[p.name].extend([episode_return for _ in range(diff)])
                     break
 
-            # TODO check if this actually works
-            # after episode reward calculated, update buffer values ACCORDING TO observed_player
-            # (this is different from DouZero, where every position is important since the game is asymmetric!)
+            # Upon completion of an episode/deal, data D is generated (above).
+            # for every T (unroll length) moves made by 'observed_player', an actor A on device V pops an index I
+            # from the free queue of V. It saves D to the shared buffer (on that actor device) at index I in
+            # increments of T (unroll length), and pushes the index I to the full queue on that actor device.
+            # Then, the first T elements of each buffer attribute are removed.
+
+            # Basically, after episode reward calculated, update buffer values of that actor device
+            # ACCORDING TO observed_player (this is different from DouZero, where every position is important
+            # since the game is asymmetric!)
             while size[observed_player] > T:
                 index = free_queue.get()
                 if index is None:

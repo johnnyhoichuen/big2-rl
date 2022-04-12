@@ -62,9 +62,9 @@ class Env:
         """
         step() takes as input the action, which
         is a list of integers, and outputs the next observation (a dict),
-        reward (dict: integer of the corresponding position and their rewards), and a Boolean variable 'done' indicating whether the
-        current game is finished. It also returns an empty
-        dictionary that is reserved to pass useful information.
+        reward (dict: integer of the corresponding position and their rewards),
+        and a Boolean variable 'done' indicating whether the current game is finished.
+        It also returns an empty dictionary that is reserved to pass useful information.
         """
         assert action in self.infoset.legal_actions
         self.players[self._acting_player_position].set_action(action)

@@ -5,8 +5,11 @@ from torch import nn
 
 # actual model for one of the 4 players
 class Big2Model(nn.Module):
-    def __init__(self):
+    def __init__(self, device=0):
         super().__init__()
+        if not device == "cpu":  # move device to right parameter
+            device = 'cuda:' + str(device)
+            self.to(torch.device(device))
 
         # LSTM handles prior actions (z_batch) with size (NL,4,208)
         # output is size 128

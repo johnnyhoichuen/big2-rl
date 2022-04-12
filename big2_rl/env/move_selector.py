@@ -2,12 +2,13 @@
 from big2_rl.env.settings import *
 
 
-# `moves` is a list of a move of a particular type (eg pair) where each element is a move represented by a list of integer ids
+# `moves` is a list of a move of some type (eg pair) where each element is a move represented by a list of integer ids
 # `opponent_move` is a list of integer ids corresponding to the cards in the move an opponent has made
 def compare_max(moves, opponent_move):
     new_moves = list()
     for move in moves:
-        # since each move is given in ascending order, only compare the highest card for singles, pairs, triples, full houses and quads
+        # since each move is given in ascending order,
+        # only compare the highest card for singles, pairs, triples, full houses and quads
         if move[len(move)-1] > opponent_move[len(move)-1]:
             new_moves.append(move)
     return new_moves
@@ -43,9 +44,9 @@ def filter_type_4_straight(moves, opponent_move):
         if move_straight_index == -1 or opp_straight_index == -1:
             raise Exception("Someone doesn't have a straight")
         
-        if move_straight_index > opp_straight_index: # new move has higher straight rank
+        if move_straight_index > opp_straight_index:  # new move has higher straight rank
             new_moves.append(move)
-        elif move_straight_index == opp_straight_index: # same rank but move has higher suit
+        elif move_straight_index == opp_straight_index:  # same rank but move has higher suit
             if move[len(move)-1] > opponent_move[len(move)-1]:
                 new_moves.append(move)
         
@@ -61,14 +62,16 @@ def filter_type_5_flush(moves, opponent_move):
             if list(map(lambda x: x % 4, move))[0] > list(map(lambda x: x % 4, opponent_move))[0]:
                 new_moves.append(move)
             elif list(map(lambda x: x % 4, move))[0] == list(map(lambda x: x % 4, opponent_move))[0]:
-                if move[len(move)-1] > opponent_move[len(move)-1]:  # if both flushes of the same suit the winner is the one with higher rank
+                # if both flushes of the same suit the winner is the one with higher rank
+                if move[len(move)-1] > opponent_move[len(move)-1]:
                     new_moves.append(move)
                     
         elif GameSettings.getInstance().get_attrs()['flush_orders'] == \
                 GameSettings.getInstance().CONST_FLUSH_ORDERBY_RANK:  # first compare by rank, then by suit
             move_ranks = list(map(lambda x: x//4, move))[::-1]
             opp_move_ranks = list(map(lambda x: x//4, opponent_move))[::-1]
-            if move_ranks > opp_move_ranks: # does elementwise comparison of the ranks in each flush in descending order
+            # does elementwise comparison of the ranks in each flush in descending order
+            if move_ranks > opp_move_ranks:
                 new_moves.append(move)
             elif move_ranks == opp_move_ranks:
                 if move[len(move)-1] > opponent_move[len(move)-1]:

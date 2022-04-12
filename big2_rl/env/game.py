@@ -252,8 +252,8 @@ class GameEnv(object):
         elif rival_move_type == md.TYPE_4_STRAIGHT:
             all_moves = mg.gen_type_4_straight()
             moves = ms.filter_type_4_straight(all_moves, rival_move)
-            moves += mg.gen_type_5_flush() + mg.gen_type_6_fullhouse() + mg.gen_type_7_quads() + \
-                     mg.gen_type_8_straightflush()
+            moves += mg.gen_type_5_flush() + mg.gen_type_6_fullhouse() + mg.gen_type_7_quads() + mg.\
+                gen_type_8_straightflush()
 
         elif rival_move_type == md.TYPE_5_FLUSH:
             all_moves = mg.gen_type_5_flush()
