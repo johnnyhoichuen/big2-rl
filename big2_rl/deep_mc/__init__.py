@@ -1,2 +1,2 @@
 from .deep_mc import train
-from .arguments import parser
+from .settings_parser_arguments import parser

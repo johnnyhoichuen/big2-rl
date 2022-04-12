@@ -40,11 +40,9 @@ class GameSettings:
         # a list of the rankings of the valid straights
         # default: 34567 < 45678 < ... < TJQKA < 23456 < A2345
         # JQKA2 is not a valid straight
-        self._straight_orders = [[range(0, 5)],  # ranks 0-4 corresponds to 34567
-                        [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                        [range(6, 11)], [range(7, 12)],  # ranks 7-11 corresponds to TJQKA
-                        [12, 0, 1, 2, 3],  # 23456
-                        [11, 12, 0, 1, 2]]  # A2345
+        # default is T2A
+        self._straight_orders = [[range(0, 5)], [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)],
+                                 [range(5, 10)], [range(6, 11)], [range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
 
         # 8-9 cards = double, 10-12 cards = triple, 13 cards = quadruple
         if penalty_threshold:
@@ -105,3 +103,18 @@ class GameSettings:
                 'straight_orders': self._straight_orders,
                 'penalty_threshold': self._penalty_threshold
                 }
+
+    def set_penalties_and_rewards(self, pq, ps, pd, rq, rs, rd):
+        # in some variations if losing players still have deuces, 1 or more SF, or 1 or more quads, then
+        # the winner's reward is doubled
+        self._penalise_quads = pq
+        self._penalise_sf = ps
+        self._penalise_deuces = pd
+
+        # in some variations if winning player ends with a deuce, SF or quads their reward is doubled
+        self._reward_quads = rq
+        self._reward_sf = rs
+        self._reward_deuces = rd
+
+    def set_penalty_threshold(self, pt):
+        self._penalty_threshold = pt
