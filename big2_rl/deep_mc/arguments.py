@@ -69,7 +69,7 @@ parser.add_argument('--batch_size', default=32, type=int,
 parser.add_argument('--unroll_length', default=100, type=int,
                     help='The unroll length (time dimension)')
 parser.add_argument('--num_buffers', default=50, type=int,
-                    help='Number of shared-memory buffers')
+                    help='Number of shared-memory buffers for a given actor device')
 parser.add_argument('--num_threads', default=4, type=int,
                     help='Number learner threads')
 parser.add_argument('--max_grad_norm', default=40., type=float,

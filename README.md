@@ -12,7 +12,7 @@ TODO
 
 In this work, we explore a variety of algorithms and structures and evaluate their respective performances. Please read [our paper](TODO) for more details.
 
-## Installation [TODO]
+## Installation
 The training code is designed for GPUs. Thus, you need to first install CUDA if you want to train models. You may refer to [this guide](https://docs.nvidia.com/cuda/index.html#installation-guides). For evaluation, CUDA is optional and you can use CPU for evaluation.
 
 First, clone the repo with:
@@ -24,7 +24,6 @@ Make sure you have python 3.6+ installed. Install dependencies:
 cd big2-rl
 pip3 install -r requirements.txt
 ```
-Note that Windows users can only use CPU as actors. See [Issues in Windows](README.md#issues-in-windows) about why GPUs are not supported.
 
 ## Training [TODO]
 To use GPU for training, run
@@ -53,12 +52,11 @@ The following command only runs actors on CPU:
 ```
 python3 train.py --actor_device_cpu
 ```
-For more customized configuration of training, see the following optional arguments:
+For more customized configuration of training, see the following optional arguments: [TODO add the rest]
 ```
 --xpid XPID           Experiment id (default: douzero)
 --save_interval SAVE_INTERVAL
                       Time interval (in minutes) at which to save the model
---objective {adp,wp}  Use ADP or WP as reward (default: ADP)
 --actor_device_cpu    Use CPU as actor device
 --gpu_devices GPU_DEVICES
                       Which GPUs to be used for training
@@ -81,7 +79,7 @@ For more customized configuration of training, see the following optional argume
 --unroll_length UNROLL_LENGTH
                       The unroll length (time dimension)
 --num_buffers NUM_BUFFERS
-                      Number of shared-memory buffers
+                      Number of shared-memory buffers for a given actor device
 --num_threads NUM_THREADS
                       Number learner threads
 --max_grad_norm MAX_GRAD_NORM
@@ -101,7 +99,7 @@ The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretr
 *   DouZero-ADP (`baselines/douzero_ADP/`): the pretrained DouZero agents with Average Difference Points (ADP) as objective
 *   DouZero-WP (`baselines/douzero_WP/`): the pretrained DouZero agents with Winning Percentage (WP) as objective
 
-### Step 1: Generate evaluation data [TODO]
+### Step 1: Generate evaluation data
 ```
 python3 generate_eval_data.py
 ```
@@ -109,34 +107,32 @@ Some important hyperparameters are as follows.
 *   `--output`: where the pickled data will be saved
 *   `--num_games`: how many random games will be generated, default 10000
 
-### Step 2: Self-Play [TODO]
+### Step 2: Self-Play
 ```
 python3 evaluate.py
 ```
 Some important hyperparameters are as follows.
-*   `--landlord`: which agent will play as Landlord, which can be random, rlcard, or the path of the pre-trained model
-*   `--landlord_up`: which agent will play as LandlordUp (the one plays before the Landlord), which can be random, rlcard, or the path of the pre-trained model
-*   `--landlord_down`: which agent will play as LandlordDown (the one plays after the Landlord), which can be random, rlcard, or the path of the pre-trained model
-*   `--eval_data`: the pickle file that contains evaluation data
-*   `--num_workers`: how many subprocesses will be used
-*   `--gpu_device`: which GPU to use. It will use CPU by default
+* `--south`: which agent will play as the South player, which can be random, or the path of the pre-trained DMC model
+* `--east`: which agent will play as the East player, which can be random, or the path of the pre-trained DMC model
+* `--north`: which agent will play as the North player, which can be random, or the path of the pre-trained DMC model
+* `--west`: which agent will play as the West player, which can be random, or the path of the pre-trained DMC model
+* `--eval_data`: the pickle file that contains evaluation data
+* `--num_workers`: how many subprocesses will be used to run evaluation data
+* `--gpu_device`: which GPU to use. It will use CPU by default
 
-For example, the following command evaluates DouZero-ADP in Landlord position against random agents
+For example, the following command evaluates performance of a DMC Agent trained for 200 frames against random agents in all other positions
 ```
-python3 evaluate.py --landlord baselines/douzero_ADP/landlord.ckpt --landlord_up random --landlord_down random
+python3 evaluate.py --south baselines/weights_200.ckpt --east random --west random --north random
 ```
-The following command evaluates DouZero-ADP in Peasants position against RLCard agents
+The following command evaluates performance of DMC Agent trained for 200 frames at south and east positions, but trained for 4000 frames at north, and 10000 frames at west.
 ```
-python3 evaluate.py --landlord rlcard --landlord_up baselines/douzero_ADP/landlord_up.ckpt --landlord_down baselines/douzero_ADP/landlord_down.ckpt
+python3 evaluate.py --south baselines/weights_200.ckpt --east baselines/weights_200.ckpt --west baselines/weights_10000.ckpt --north baselines/weights_4000.ckpt
 ```
-By default, our model will be saved in `douzero_checkpoints/douzero` every half an hour. We provide a script to help you identify the most recent checkpoint. Run
+By default, our model will be saved in `big2rl_checkpoints/big2rl` every half an hour. We provide a script to help identify the most recent checkpoint. Run
 ```
-sh get_most_recent.sh douzero_checkpoints/douzero/
+sh get_most_recent.sh big2rl_checkpoints/big2rl/
 ```
 The most recent model will be in `most_recent_model`.
-
-## Issues in Windows
-You may encounter `operation not supported` error if you use a Windows system to train with GPU as actors. This is because doing multiprocessing on CUDA tensors is not supported in Windows. However, our code extensively operates on the CUDA tensors since the code is optimized for GPUs. Please contact us if you find any solutions!
 
 ## Core Team
 *   [Jasper Chow](https://github.com/jchow-ust)

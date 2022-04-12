@@ -16,7 +16,7 @@ def load_models(model_path):
         if model_path[p.name] == 'random':
             players[p.name] = RandomAgent()
         else:
-            players[p.name] = DMCAgent()
+            players[p.name] = DMCAgent(model_path)
     return players
 
 
