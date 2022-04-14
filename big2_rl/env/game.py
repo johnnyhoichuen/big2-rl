@@ -194,7 +194,7 @@ class GameEnv(object):
         """
         if self.acting_player_position is None:
             for pos in Position:
-                if 0 in self.info_sets[pos.name].player_hand_cards:  # TODO check if this works: if player has 3d
+                if 0 in self.info_sets[pos.name].player_hand_cards:
                     self.acting_player_position = pos.name
                     break
         else:

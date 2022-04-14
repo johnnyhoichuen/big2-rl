@@ -229,22 +229,26 @@ def get_obs(infoset):
         other_players_num_cards_left_batch.append(opponent_num_cards_left_batch)
         other_players_played_cards_batch.append(opponent_played_cards_batch)
 
+    # print(np.array(other_players_action_batch).shape) = (3, NL, 52). Need to reshape to shape (NL, 3, 52)
+
     # construct the feature groupings
     x_batch = np.hstack((my_handcards_batch,
                          other_handcards_batch,
                          last_action_batch,
-                         # TODO Fix future warning here
-                         np.hstack(np.array(_) for _ in other_players_action_batch),
-                         np.hstack(np.array(_) for _ in other_players_num_cards_left_batch),
-                         np.hstack(np.array(_) for _ in other_players_played_cards_batch),
+                         np.array(other_players_action_batch).reshape(num_legal_actions, 3, 52).reshape(
+                             num_legal_actions, 52 * 3),
+                         np.array(other_players_num_cards_left_batch).reshape(num_legal_actions, 3, 13).reshape(
+                             num_legal_actions, 13 * 3),
+                         np.array(other_players_played_cards_batch).reshape(num_legal_actions, 3, 52).reshape(
+                             num_legal_actions, 52 * 3),
                          my_action_batch
                          ))
     x_no_action = np.hstack((my_handcards,
                              other_handcards,
                              last_action,
-                             np.hstack(np.array(_) for _ in other_players_action),
-                             np.hstack(np.array(_) for _ in other_players_num_cards_left),
-                             np.hstack(np.array(_) for _ in other_players_played_cards),
+                             np.array(other_players_action).reshape(3, 52).reshape(52 * 3),
+                             np.array(other_players_num_cards_left).reshape(3, 13).reshape(13 * 3),
+                             np.array(other_players_played_cards).reshape(3, 52).reshape(52 * 3)
                              ))
     # z should be a 4*208 matrix encoding the previous 16 moves
     z = _action_seq_list2array(_process_action_seq(infoset.card_play_action_seq))
@@ -257,6 +261,11 @@ def get_obs(infoset):
             'x_no_action': x_no_action.astype(np.int8),
             'z': z.astype(np.int8),
           }
+
+    assert obs['x_batch'].shape[1] == 559
+    assert obs['z_batch'].shape[2] == 208 and obs['z_batch'].shape[1] == 4
+    assert obs['x_no_action'].shape[0] == 507
+    assert obs['z'].shape[1] == 208 and obs['z'].shape[0] == 4
 
     # Feature list:
     # opp1 = opponent acting after player, opp2 = opponent across player, opp3 = opponent acting before player
