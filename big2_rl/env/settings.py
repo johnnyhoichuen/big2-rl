@@ -41,8 +41,10 @@ class GameSettings:
         # default: 34567 < 45678 < ... < TJQKA < 23456 < A2345
         # JQKA2 is not a valid straight
         # default is T2A
-        self._straight_orders = [[range(0, 5)], [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)],
-                                 [range(5, 10)], [range(6, 11)], [range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
+        self._straight_orders = [[_ for _ in range(0, 5)], [_ for _ in range(1, 6)], [_ for _ in range(2, 7)],
+                                 [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],
+                                 [_ for _ in range(5, 10)], [_ for _ in range(6, 11)],
+                                 [_ for _ in range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
 
         # 8-9 cards = double, 10-12 cards = triple, 13 cards = quadruple
         if penalty_threshold:
@@ -60,27 +62,30 @@ class GameSettings:
         89T assumes A2345 < 23456 < 34567 < ... < 9TJQK < TJQKA
         """
         if straight_order == "T2A":  # default
-            self._straight_orders = [[range(0, 5)],  # ranks 0-4 corresponds to 34567
-                                     [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                                     [range(6, 11)], [range(7, 12)],  # ranks 7-11 corresponds to TJQKA
-                                     [12, 0, 1, 2, 3],  # 23456
-                                     [11, 12, 0, 1, 2]]
+            self._straight_orders = [[_ for _ in range(0, 5)], [_ for _ in range(1, 6)], [_ for _ in range(2, 7)],
+                                 [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],
+                                 [_ for _ in range(5, 10)], [_ for _ in range(6, 11)],
+                                 [_ for _ in range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
         elif straight_order == "TA2":
-            self._straight_orders = [[range(0, 5)],
-                        [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                        [range(6, 11)], [range(7, 12)], [11, 12, 0, 1, 2], [12, 0, 1, 2, 3]]
+            self._straight_orders = [[_ for _ in range(0, 5)], [_ for _ in range(1, 6)], [_ for _ in range(2, 7)],
+                                    [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],
+                                    [_ for _ in range(5, 10)], [_ for _ in range(6, 11)],
+                                    [_ for _ in range(7, 12)], [11, 12, 0, 1, 2], [12, 0, 1, 2, 3]]
         elif straight_order == "9TA":
-            self._straight_orders = [[12, 0, 1, 2, 3], [range(0, 5)],
-                                    [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                                    [range(6, 11)], [range(7, 12)], [11, 12, 0, 1, 2]]
+            self._straight_orders = [[12, 0, 1, 2, 3], [_ for _ in range(0, 5)], [_ for _ in range(1, 6)],
+                                     [_ for _ in range(2, 7)], [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],
+                                     [_ for _ in range(5, 10)], [_ for _ in range(6, 11)], [_ for _ in range(7, 12)],
+                                     [11, 12, 0, 1, 2]]
         elif straight_order == "9AT":
-            self._straight_orders = [[12, 0, 1, 2, 3], [range(0, 5)],
-                                    [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                                    [range(6, 11)], [11, 12, 0, 1, 2], [range(7, 12)]]
+            self._straight_orders = [[12, 0, 1, 2, 3], [_ for _ in range(0, 5)], [_ for _ in range(1, 6)],
+                                     [_ for _ in range(2, 7)], [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],
+                                     [_ for _ in range(5, 10)], [_ for _ in range(6, 11)], [11, 12, 0, 1, 2],
+                                     [_ for _ in range(7, 12)]]
         elif straight_order == "89T":
-            self._straight_orders = [[11, 12, 0, 1, 2], [12, 0, 1, 2, 3], [range(0, 5)],
-                                    [range(1, 6)], [range(2, 7)], [range(3, 8)], [range(4, 9)], [range(5, 10)],
-                                    [range(6, 11)], [range(7, 12)]]
+            self._straight_orders = [[11, 12, 0, 1, 2], [12, 0, 1, 2, 3], [_ for _ in range(0, 5)],
+                                     [_ for _ in range(1, 6)], [_ for _ in range(2, 7)], [_ for _ in range(3, 8)],
+                                     [_ for _ in range(4, 9)], [_ for _ in range(5, 10)], [_ for _ in range(6, 11)],
+                                     [_ for _ in range(7, 12)]]
         else:
             raise Exception("invalid parameter for set_straight_order")
 

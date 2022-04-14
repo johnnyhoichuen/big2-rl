@@ -123,6 +123,7 @@ class MovesGener(object):
         result = list()
         # https://stackoverflow.com/questions/27150990/python-itertools-combinations-how-to-obtain-the-indices-of-the-combined-numbers
         five_card_moves = list(itertools.combinations(self.cards_list, 5))  # generate all 5 card combos
+        five_card_moves = [list(_) for _ in five_card_moves]  # fix tuple m.sort() error
         # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid straights
         result.extend(filter(is_valid_straight, five_card_moves))
@@ -135,6 +136,7 @@ class MovesGener(object):
         # TODO: need to stress test this function's performance for a hand like A23456789TJQK all hearts
         self.flush_moves = []
         five_card_moves = list(itertools.combinations(self.cards_list, 5))  # generate all 5 card combos
+        five_card_moves = [list(_) for _ in five_card_moves]
         # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid flushes
         self.flush_moves.extend(filter(is_valid_flush, five_card_moves))

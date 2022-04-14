@@ -77,8 +77,8 @@ class GameEnv(object):
             self.last_move_dict[pos.name] = []
             self.played_cards[pos.name] = []
             if not reset:  # don't reset these between deals
-                self.num_wins[pos.name] = []
-                self.num_scores[pos.name] = []
+                self.num_wins[pos.name] = 0
+                self.num_scores[pos.name] = 0
             self.info_sets[pos.name] = InfoSet(pos.name)
 
     def card_play_init(self, card_play_data):

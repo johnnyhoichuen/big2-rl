@@ -34,11 +34,13 @@ def filter_type_4_straight(moves, opponent_move):
         
         move_straight_index = -1
         opp_straight_index = -1
-        
-        for s_i in range(len(GameSettings.getInstance().get_attrs()['straight_orders'])):
-            if len(move_ranks.intersection(GameSettings.getInstance().get_attrs()['straight_orders'])) == 5:
+
+        # s_i = index or rank of the straight with value 'straight'. the higher the better
+        for s_i, straight in enumerate(GameSettings.getInstance().get_attrs()['straight_orders']):
+            straight_as_set = set(straight)
+            if len(move_ranks.intersection(straight_as_set)) == 5:
                 move_straight_index = s_i
-            if len(opp_move_ranks.intersection(GameSettings.getInstance().get_attrs()['straight_orders'])) == 5:
+            if len(opp_move_ranks.intersection(straight_as_set)) == 5:
                 opp_straight_index = s_i
                 
         if move_straight_index == -1 or opp_straight_index == -1:

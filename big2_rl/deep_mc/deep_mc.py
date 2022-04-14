@@ -60,8 +60,8 @@ def learn(actor_models,
         optimizer.step()
 
         # update actor models to have weights of the learner model
-        for actor_model in actor_models:
-            actor_model.load_state_dict(model.state_dict())
+        for pos in actor_models.keys():
+            actor_models[pos].load_state_dict(model.state_dict())
         return stats
 
 
@@ -128,7 +128,7 @@ def train(flags):
         _free_queue = ctx.SimpleQueue()
         _full_queue = ctx.SimpleQueue()
         free_queue[device] = _free_queue
-        full_queue[device] = full_queue
+        full_queue[device] = _full_queue
 
     # Create learner model for training on the ONE training_device
     learner_model = Big2Model(flags.training_device)

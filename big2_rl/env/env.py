@@ -229,11 +229,11 @@ def get_obs(infoset):
         other_players_num_cards_left_batch.append(opponent_num_cards_left_batch)
         other_players_played_cards_batch.append(opponent_played_cards_batch)
 
-    x_batch = np.hstak
     # construct the feature groupings
     x_batch = np.hstack((my_handcards_batch,
                          other_handcards_batch,
                          last_action_batch,
+                         # TODO Fix future warning here
                          np.hstack(np.array(_) for _ in other_players_action_batch),
                          np.hstack(np.array(_) for _ in other_players_num_cards_left_batch),
                          np.hstack(np.array(_) for _ in other_players_played_cards_batch),
