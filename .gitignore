@@ -3,4 +3,5 @@
 **/.DS_Store
 **/._.DS_Store
 .idea
-./big2_rl_checkpoints
+__pycache__/
+big2rl_checkpoints/
