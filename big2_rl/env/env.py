@@ -189,58 +189,61 @@ def get_obs(infoset):
     for i, action in enumerate(infoset.legal_actions):
         my_action_batch[i, :] = _cards2array(action)
 
-    # (dict String : some nparray) storing other 3 players' previous action, num cards left, set of cards played
+    # list of 3 nparray-s storing other 3 players' previous action, num cards left, set of cards played
     # in both regular and batch form
-    other_players_action = {}
-    other_players_num_cards_left = {}
-    other_players_played_cards = {}
+    other_players_action = []
+    other_players_num_cards_left = []
+    other_players_played_cards = []
 
-    other_players_action_batch = {}
-    other_players_num_cards_left_batch = {}
-    other_players_played_cards_batch = {}
+    other_players_action_batch = []
+    other_players_num_cards_left_batch = []
+    other_players_played_cards_batch = []
 
     # iterate through every position not the current position (i.e. not equal to infoset.player_position)
-    # TODO should this be symmetric for all 4 players?
-    for pos in Position:
-        if pos.name == infoset.player_position:
-            continue  # break is incorrect
+    # get value of position. store opponent features as [next, across, before] for all 4 players
+    # eg north stores opponent features as [west, south, east]
+    this_position = Position[infoset.player_position].value
+    # get list of opponent positions in order
+    position_range = [_ % 4 for _ in range(this_position + 1, this_position + 4)]
+    for pos in position_range:
+        posname = Position(pos).name
 
         # convert:
         # 1. opponent's most recent move (including pass) to one hot vector
         # 2. number of cards left in opponent hand to one hot vector
         # 3. set of cards played by this opponent to one hot vector
-        opponent_action = _cards2array(infoset.last_move_dict[pos.name])
-        opponent_num_cards_left = _get_one_hot_array(infoset.num_cards_left_dict[pos.name], 13)
-        opponent_played_cards = _cards2array(infoset.played_cards[pos.name])
-
-        other_players_action[pos.name] = opponent_action
-        other_players_num_cards_left[pos.name] = opponent_num_cards_left
-        other_players_played_cards[pos.name] = opponent_played_cards
+        opponent_action = _cards2array(infoset.last_move_dict[posname])
+        opponent_num_cards_left = _get_one_hot_array(infoset.num_cards_left_dict[posname], 13)
+        opponent_played_cards = _cards2array(infoset.played_cards[posname])
 
         # then get their batch representations (increase dim by 1) for training purposes
         opponent_action_batch = np.repeat(opponent_action[np.newaxis, :], num_legal_actions, axis=0)
         opponent_num_cards_left_batch = np.repeat(opponent_num_cards_left[np.newaxis, :], num_legal_actions, axis=0)
         opponent_played_cards_batch = np.repeat(opponent_played_cards[np.newaxis, :], num_legal_actions, axis=0)
 
-        other_players_action_batch[pos.name] = opponent_action_batch
-        other_players_num_cards_left_batch[pos.name] = opponent_num_cards_left_batch
-        other_players_played_cards_batch[pos.name] = opponent_played_cards_batch
+        other_players_action.append(opponent_action)
+        other_players_num_cards_left.append(opponent_num_cards_left)
+        other_players_played_cards.append(opponent_played_cards)
+
+        other_players_action_batch.append(opponent_action_batch)
+        other_players_num_cards_left_batch.append(opponent_num_cards_left_batch)
+        other_players_played_cards_batch.append(opponent_played_cards_batch)
 
     # construct the feature groupings
     x_batch = np.hstack((my_handcards_batch,
                          other_handcards_batch,
                          last_action_batch,
-                         [value for key, value in other_players_action_batch],
-                         [value for key, value in other_players_num_cards_left_batch],
-                         [value for key, value in other_players_played_cards_batch],
+                         np.array(other_players_action_batch),
+                         np.array(other_players_num_cards_left_batch),
+                         np.array(other_players_played_cards_batch),
                          my_action_batch
                          ))
     x_no_action = np.hstack((my_handcards,
                              other_handcards,
                              last_action,
-                             [value for key, value in other_players_action],
-                             [value for key, value in other_players_num_cards_left],
-                             [value for key, value in other_players_played_cards]
+                             np.array(other_players_action),
+                             np.array(other_players_num_cards_left),
+                             np.array(other_players_played_cards)
                              ))
     # z should be a 4*208 matrix encoding the previous 16 moves
     z = _action_seq_list2array(_process_action_seq(infoset.card_play_action_seq))
@@ -255,6 +258,7 @@ def get_obs(infoset):
           }
 
     # Feature list:
+    # opp1 = opponent acting after player, opp2 = opponent across player, opp3 = opponent acting before player
     #        | Feature                                     | Size
     # Action | one-hot vector of a prospective action | 52
     # State  | one-hot vector of hand cards held by current player | 52
