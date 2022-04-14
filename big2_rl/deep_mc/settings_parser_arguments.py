@@ -28,4 +28,4 @@ parser.add_argument('--straight_orders', default='T2A', type=str,
 # python settings_parser_arguments.py -pt 8 11 13
 parser.add_argument('-pt', '--penalty_threshold', nargs='*',
                     help="""Thresholds at which multiplicative penalties apply for players which equal 
-                    to or more than the specified number of cards""", type=int, required=False)
+                    to or more than the specified number of cards""", type=int, required=False, default=[8, 10, 13])

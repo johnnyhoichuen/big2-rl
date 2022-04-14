@@ -1,6 +1,6 @@
 # Big Two with Deep Reinforcement Learning
 
-Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia.org/wiki/Big_two) (Cantonese: 鋤大弟), a four-player card-shedding game popular in many Southeast Asia countries played with a standard 52-card deck without jokers.
+Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia.org/wiki/Big_two) (Cantonese: 鋤大弟), a four-player card-shedding game popular in many Southeast Asia countries played with a standard 52-card deck without jokers. Our framework uses multiprocessing and is heavily inspired by DouZero and TorchBeast (see Acknowledgements).
 
 Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
 
@@ -93,8 +93,7 @@ For more customized configuration of training, see the following optional argume
 
 ## Evaluation [TODO]
 The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available at [Google Drive](https://drive.google.com/drive/folders/1NmM2cXnI5CIWHaLJeoDZMiwt6lOTV_UB?usp=sharing) or [百度网盘](https://pan.baidu.com/s/18g-JUKad6D8rmBONXUDuOQ), 提取码: 4624. Put pretrained weights in `baselines/`. The performance is evaluated through self-play. We have provided pretrained models and some heuristics as baselines:
-*   [random](douzero/evaluation/random_agent.py): agents that play randomly (uniformly)
-*   [rlcard](douzero/evaluation/rlcard_agent.py): the rule-based agent in [RLCard](https://github.com/datamllab/rlcard)
+*   [random](big2_rl/evaluation/random_agent.py): agents that play randomly (uniformly)
 *   SL (`baselines/sl/`): the pre-trained deep agents on human data
 *   DouZero-ADP (`baselines/douzero_ADP/`): the pretrained DouZero agents with Average Difference Points (ADP) as objective
 *   DouZero-WP (`baselines/douzero_WP/`): the pretrained DouZero agents with Winning Percentage (WP) as objective
@@ -107,7 +106,7 @@ Some important hyperparameters are as follows.
 *   `--output`: where the pickled data will be saved
 *   `--num_games`: how many random games will be generated, default 10000
 
-### Step 2: Self-Play
+### Step 2: Self-Play [TODO add the settings]
 ```
 python3 evaluate.py
 ```
@@ -128,11 +127,7 @@ The following command evaluates performance of DMC Agent trained for 200 frames 
 ```
 python3 evaluate.py --south baselines/weights_200.ckpt --east baselines/weights_200.ckpt --west baselines/weights_10000.ckpt --north baselines/weights_4000.ckpt
 ```
-By default, our model will be saved in `big2rl_checkpoints/big2rl` every half an hour. We provide a script to help identify the most recent checkpoint. Run
-```
-sh get_most_recent.sh big2rl_checkpoints/big2rl/
-```
-The most recent model will be in `most_recent_model`.
+By default, our model will be saved in `big2rl_checkpoints/big2rl` every 20 minutes.
 
 ## Core Team
 *   [Jasper Chow](https://github.com/jchow-ust)

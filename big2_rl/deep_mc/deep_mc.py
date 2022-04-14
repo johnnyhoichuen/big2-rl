@@ -17,7 +17,6 @@ from .utils import get_batch, log, create_buffers, act
 mean_episode_return_buf = deque(maxlen=100)
 
 
-# TODO: need better loss function for big2 - this is DouDizhu
 def compute_loss(logits, targets):
     loss = ((logits.squeeze(-1) - targets) ** 2).mean()
     return loss
