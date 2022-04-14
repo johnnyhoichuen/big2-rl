@@ -229,21 +229,22 @@ def get_obs(infoset):
         other_players_num_cards_left_batch.append(opponent_num_cards_left_batch)
         other_players_played_cards_batch.append(opponent_played_cards_batch)
 
+    x_batch = np.hstak
     # construct the feature groupings
     x_batch = np.hstack((my_handcards_batch,
                          other_handcards_batch,
                          last_action_batch,
-                         np.array(other_players_action_batch),
-                         np.array(other_players_num_cards_left_batch),
-                         np.array(other_players_played_cards_batch),
+                         np.hstack(np.array(_) for _ in other_players_action_batch),
+                         np.hstack(np.array(_) for _ in other_players_num_cards_left_batch),
+                         np.hstack(np.array(_) for _ in other_players_played_cards_batch),
                          my_action_batch
                          ))
     x_no_action = np.hstack((my_handcards,
                              other_handcards,
                              last_action,
-                             np.array(other_players_action),
-                             np.array(other_players_num_cards_left),
-                             np.array(other_players_played_cards)
+                             np.hstack(np.array(_) for _ in other_players_action),
+                             np.hstack(np.array(_) for _ in other_players_num_cards_left),
+                             np.hstack(np.array(_) for _ in other_players_played_cards),
                              ))
     # z should be a 4*208 matrix encoding the previous 16 moves
     z = _action_seq_list2array(_process_action_seq(infoset.card_play_action_seq))
