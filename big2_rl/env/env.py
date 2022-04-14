@@ -2,7 +2,7 @@ import numpy as np
 
 from .game import GameEnv, Position
 
-deck = [range(0, 52)]
+deck = [i for i in range(0, 52)]
 
 
 class Env:

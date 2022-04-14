@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 from big2_rl.env.game import Position
 
-deck = [range(0, 52)]
+deck = [i for i in range(0, 52)]
 
 
 def get_parser():
