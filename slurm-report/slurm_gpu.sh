@@ -2,7 +2,7 @@
 
 #SBATCH --job-name big2rl
 #SBATCH --ntasks=1
-SBATCH --time=12:00:00
+#SBATCH --time=12:00:00
 
 # available partition
 # 1. cpu-share
@@ -10,7 +10,7 @@ SBATCH --time=12:00:00
 # 3. himem-share
 
 # selecting partition
-SBATCH -p gpu-share
+#SBATCH -p gpu-share
 
 # **** example ****
 # To use 2 cpu cores and 2 gpu devices in a node
@@ -20,7 +20,7 @@ SBATCH -p gpu-share
 # *****************
 
 # select cores
-SBATCH -N 1 -n 4 --gres=gpu:2
+#SBATCH -N 1 -n 4 --gres=gpu:2
 
 # memory per node???
 #SBATCH --mem=8G
