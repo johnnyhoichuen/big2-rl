@@ -2,6 +2,7 @@ import typing
 import logging
 import traceback
 from big2_rl.env.game import Position
+from big2_rl.evaluation.random_agent import RandomAgent
 
 import torch
 
@@ -115,6 +116,9 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         # since positions are symmetric, we only consider this position for learner
         observed_player = Position.SOUTH.name
 
+        # stays constant at all other positions. Can import other agents for evaluating our DMC agent against
+        random_agent = RandomAgent()
+
         # outer loop plays infinite deals (is never broken)
         while True:
             # inner while loop corresponds to one deal
@@ -122,12 +126,15 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                 # save current turn's possible state (obs_x_no_action) and historical moves (obs_z)
                 obs_x_no_action_buf[position].append(env_output['obs_x_no_action'])
                 obs_z_buf[position].append(env_output['obs_z'])
-                # use the model to predict next action to make
-                with torch.no_grad():
-                    agent_output = model.forward(obs['z_batch'], obs['x_batch'], flags=flags)
-                # given the action (a torch tensor), get the corresponding card values eg [51, 50] for playing 2s2h
-                _action_idx = int(agent_output['action'].cpu().detach().numpy())
-                action = obs['legal_actions'][_action_idx]
+                if position == observed_player:
+                    # use the model to predict next action to make
+                    with torch.no_grad():
+                        agent_output = model.forward(obs['z_batch'], obs['x_batch'], flags=flags)
+                    # given the action (a torch tensor), get the corresponding card values eg [51, 50] for playing 2s2h
+                    _action_idx = int(agent_output['action'].cpu().detach().numpy())
+                    action = obs['legal_actions'][_action_idx]
+                else:
+                    action = random_agent.act(env.infoset)
                 # save current turn's action (as 1 hot torch tensor) to the corresponding buffer
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position
