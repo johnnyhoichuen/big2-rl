@@ -76,7 +76,7 @@ class GameEnv(object):
         for pos in Position:
             self.last_move_dict[pos.name] = []
             self.played_cards[pos.name] = []
-            if not reset:  # don't reset these between deals
+            if reset:  # don't reset these between deals
                 self.num_wins[pos.name] = 0
                 self.num_scores[pos.name] = 0
             self.info_sets[pos.name] = InfoSet(pos.name)

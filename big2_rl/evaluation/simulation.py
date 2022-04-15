@@ -71,8 +71,8 @@ def evaluate(south, east, north, west, eval_data, num_workers):
     for i in range(num_workers):
         result = q.get()
         for p in Position:
-            num_wins_by_position[p.name] += result[p.name][0]
-            ev_by_position[p.name] += result[p.name][1]
+            num_wins_by_position[p.name] += result[0][p.name]
+            ev_by_position[p.name] += result[1][p.name]
             total_wins += num_wins_by_position[p.name]
 
     for p in Position:

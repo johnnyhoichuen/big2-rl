@@ -12,7 +12,7 @@ def get_parser():
     """
     parser = argparse.ArgumentParser(description='Big2RL - generate random games for evaluation')
     parser.add_argument('--output', default='eval_data', type=str)
-    parser.add_argument('--num_games', default=20000, type=int)
+    parser.add_argument('--num_games', default=20, type=int)  # TODO increase this
     return parser
 
 
