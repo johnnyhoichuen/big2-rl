@@ -27,11 +27,7 @@ SBATCH -N 1 -n 4 --gres=gpu:2
 
 # output file location
 ## SBATCH --output=/home/hcchengaa/ml-projects/big2-rl/slurm_report/%j.out
-
-module load python3
-# module load cuda
-# module load anaconda3
-source activate big2rl
+module load cuda
 
 srun which python # confirm python version
 
@@ -39,16 +35,19 @@ srun which python # confirm python version
 # srun python helloworld.py
 
 # # train with cpu
-echo -e "\n\n\n Training"
+echo -e "\n\n\nTraining"
 cd ..
-# srun python3 train.py --actor_device_cpu --training_device cpu -pt 8 10 13
-srun python3 train.py --gpu_devices 0,1 --num_actor_devices 1 --num_actors 10 --training_device 1 -pt 8 10 13
+# if running on local machine, use:
+# python3 train.py --actor_device_cpu --training_device cpu -pt 8 10 13
+# python3 generate_eval_data.py
+# python3 evaluate.py
+srun python train.py --gpu_devices 0,1 --num_actor_devices 1 --num_actors 10 --training_device 1 -pt 8 10 13
 
-echo -e "\n\n\n Generating eval data"
-srun python3 generate_eval_data.py
+echo -e "\n\n\nGenerating eval data"
+srun python generate_eval_data.py
 
-echo -e "\n\n\n Evaluating"
-srun python3 evaluate.py
+echo -e "\n\n\nEvaluating"
+srun python evaluate.py
 
 # wait
-echo -e "Training done"
+echo -e "\nTraining done"

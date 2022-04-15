@@ -28,10 +28,10 @@
 # output file location
 ## SBATCH --output=/home/hcchengaa/ml-projects/big2-rl/slurm_report/%j.out
 
-module load python
-source activate big2rl
+# module load python  # Lmod has detected error, unknown module python
+# source activate big2rl  # No such file or directory
 
-srun which python # confirm python version
+srun which python # confirm python version. This should be executed if we used 'conda activate big2rl' before
 
 # testing basic function
 # srun python helloworld.py
