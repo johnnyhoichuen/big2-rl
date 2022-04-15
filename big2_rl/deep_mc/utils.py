@@ -134,7 +134,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                     _action_idx = int(agent_output['action'].cpu().detach().numpy())
                     action = obs['legal_actions'][_action_idx]
                 else:
-                    action = random_agent.act(env.infoset)
+                    action = random_agent.act(env.env.infoset)
                 # save current turn's action (as 1 hot torch tensor) to the corresponding buffer
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position
