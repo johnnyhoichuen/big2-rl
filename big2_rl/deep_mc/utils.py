@@ -3,6 +3,8 @@ import logging
 import traceback
 from big2_rl.env.game import Position
 from big2_rl.evaluation.random_agent import RandomAgent
+from big2_rl.evaluation.ppo_agent import PPOAgent
+# TODO import prior agent?
 
 import torch
 
@@ -118,6 +120,8 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
 
         # stays constant at all other positions. Can import other agents for evaluating our DMC agent against
         random_agent = RandomAgent()
+        ppo_agent = PPOAgent()
+        #prior_agent = ?  # TODO
 
         # outer loop plays infinite deals (is never broken)
         while True:
@@ -134,7 +138,12 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                     _action_idx = int(agent_output['action'].cpu().detach().numpy())
                     action = obs['legal_actions'][_action_idx]
                 else:
-                    action = random_agent.act(env.env.infoset)
+                    if flags.opponent_agent == 'ppo':
+                        action = ppo_agent.act(env.env.infoset)
+                    elif flags.opponent_agent == 'prior':
+                        pass  # TODO
+                    else:  # random agent
+                        action = random_agent.act(env.env.infoset)
                 # save current turn's action (as 1 hot torch tensor) to the corresponding buffer
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position

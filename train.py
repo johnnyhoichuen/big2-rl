@@ -9,6 +9,9 @@ if __name__ == '__main__':
                         help='Experiment id (default: big2rl)')
     parser.add_argument('--save_interval', default=10, type=int,
                         help='Time interval (in minutes) at which to save the model')
+    parser.add_argument('--opponent_agent', default='random', type=str,
+                        help='Type of opponent agent to be placed in other 3 positions \
+                        which model will be tested again. Values = {prior, ppo}')
 
     # Training settings
     parser.add_argument('--actor_device_cpu', action='store_true',

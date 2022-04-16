@@ -1,7 +1,7 @@
 import random
 
 
-class RandomAgent():
+class RandomAgent:
     def __init__(self):
         self.name = 'Random'
 
