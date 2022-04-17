@@ -39,7 +39,7 @@ srun which python # confirm python version. This should be executed if we used '
 # # train with cpu
 echo -e "\n\n\n Training"
 cd ..
-srun python train.py --actor_device_cpu --training_device cpu -pt 14 14 14 --opponent_agent ppo
+srun python train.py --actor_device_cpu --training_device cpu -pt 14 16 18 --opponent_agent ppo
 
 echo -e "\n\n\n Generating eval data"
 srun python generate_eval_data.py

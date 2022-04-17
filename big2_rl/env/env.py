@@ -1,6 +1,8 @@
 import numpy as np
 
 from .game import GameEnv, Position
+from .move_generator import MovesGener
+from big2_rl.env import move_detector as md
 
 deck = [i for i in range(0, 52)]
 
@@ -292,6 +294,175 @@ def get_obs(infoset):
     # x_no_action size: (507,)
     # z size: (4, 208)
     return obs
+
+
+def get_ppo_action(starting_hand, infoset, number_of_actions, act_lookup_2, act_lookup_3, act_lookup_5, act_dim=1695):
+    """
+    Get available actions for PPO as a np-array of size 1695
+    """
+    # requires: act_dim, infoset, starting_hand, action lookup tables (2,3,5), number_of_actions
+
+    available_actions = np.full(shape=(act_dim,), fill_value=np.NINF, dtype=np.float32)  # size 1695
+    # note that the PPO model also considers 4-card moves to be valid (four of a kind or two pairs). In our ruleset,
+    # these will always be invalid moves.
+
+    # convert each possible legal move to its index in range [0, 1695)
+    for possible_move in infoset.legal_actions:
+        # convert card values of that possible move to indices in self.starting_hand
+        possible_move_as_ind = []
+        for i, val in enumerate(starting_hand):
+            for card in possible_move:
+                if val == card:
+                    possible_move_as_ind.append(i)
+
+        # since num of moves with 1 card: 13, 2 cards: 33, 3 cards: 31, 4 cards: 330, 5 cards: 1287,
+        # need to add offset. Eg for 3-card hands, need add offset of 1-card and 2-card (13+33=46)
+        nn_input_ind = None
+        assert type(act_lookup_3) is not int
+        if len(possible_move_as_ind) == 2:
+            nn_input_ind = act_lookup_2[possible_move_as_ind[0], possible_move_as_ind[1]] + \
+                           number_of_actions[0]
+        elif len(possible_move_as_ind) == 3:
+            nn_input_ind = act_lookup_3[possible_move_as_ind[0], possible_move_as_ind[1],
+                                        possible_move_as_ind[2]] + number_of_actions[1]
+        elif len(possible_move_as_ind) == 5:
+            nn_input_ind = act_lookup_5[possible_move_as_ind[0], possible_move_as_ind[1],
+                                        possible_move_as_ind[2], possible_move_as_ind[3],
+                                        possible_move_as_ind[4]] + number_of_actions[2]
+        elif len(possible_move_as_ind) == 1:
+            nn_input_ind = possible_move_as_ind[0]
+        elif len(possible_move_as_ind) == 0:  # pass
+            nn_input_ind = number_of_actions[3]
+        assert nn_input_ind is not None
+        available_actions[nn_input_ind] = 0
+        return available_actions
+
+
+def get_ppo_state(starting_hand, infoset, action_sequence, obs_dim=412):
+    """
+    Returns current state for PPO (a 412-dimensional feature) as nparray
+
+    Note: We ignore 4-card hands (2Pr, Quad). Agent is still able to play Quads+kicker but won't have a feature for it
+    F1. for each of 13 cards in hand: rank (13) + suit (4) + inPair + in3 + inFour + inStraight + inFlush (5)
+    # Total for (1): (13+4+5)*13
+    F2. for each opponent in {downstream, across, upstream}:
+    cards left (one-hot of 13) + has played Ax or 2x (8) + hasPlayed Pr,Triple,2Pr,Str,Flush,FH (6)
+    # Total for (2): (13+8+6)*3
+    F3. global Qx, Kx, Ax, 2x played.
+    # Total for (3): 16
+    F4. rank of the highest card in previous non-pass-move (13) + suit of the highest card in previous
+    non-pass-move (4) + previousMoveIsSingle,Pr,Triple,2Pr,Quad,Str,Flush,FH (8) + control,0pass,1pass,2pass (4)
+    # Total for (4): 13+4+8+4
+    # Total size of state: (13+4+5)*13 + (13+8+6)*3 + 16 + (13+4+8+4) = 412
+    """
+    # requires: starting_hand, obs_dim, infoset, action_sequence, MovesGener, MoveDetector as md
+    state = np.zeros((obs_dim,), dtype=np.float32)
+    feat_1_size = 13 + 4 + 5
+    mg = MovesGener(infoset.player_hand_cards)
+    for index, card in enumerate(starting_hand):
+        if card not in infoset.player_hand_cards:  # if card only in starting hand, it has already been played
+            continue
+        suit, rank = card % 4, card // 4
+        state[feat_1_size * index + 13 + suit] = 1
+        state[feat_1_size * index + rank] = 1
+
+        in_hand = [mg.gen_type_2_pair(), mg.gen_type_3_triple(), [], mg.gen_type_4_straight() +
+                   mg.gen_type_8_straightflush(), mg.gen_type_5_flush() + mg.gen_type_8_straightflush()]
+        for in_hand_index, hand_type in enumerate(in_hand):
+            found = 0
+            for hand in hand_type:
+                if card in hand:
+                    found = 1
+                    break
+            state[feat_1_size * index + 17 + in_hand_index] = found
+
+    # get current position. Iterate through each opponent position, compute feature 2
+    feat_2_offset = (13 + 4 + 5) * 13
+    feat_2_size = 13 + 8 + 6
+    this_position = Position[infoset.player_position].value
+    total_played_cards = infoset.played_cards[infoset.player_position]  # for feature 3
+    # get list of opponent positions in order
+    position_range = [_ % 4 for _ in range(this_position + 1, this_position + 4)]
+    for opp_ind, pos in enumerate(position_range):
+        posname = Position(pos).name
+        num_cards_left = infoset.num_cards_left_dict[posname]
+        state[feat_2_offset + feat_2_size * opp_ind + num_cards_left - 1] = 1
+
+        played_cards = infoset.played_cards[posname]
+        total_played_cards += played_cards
+        high_cards = [_ for _ in range(44, 52)]
+        for card_ind, high_card in enumerate(high_cards):  # iterate over {Ad, Ac, ..., 2h, 2s}
+            if high_card in played_cards:
+                state[feat_2_offset + feat_2_size * opp_ind + 13 + card_ind] = 1
+
+        found = [False for _ in range(5)]  # found_i=True if we already found a hand of that type by current player
+        for hand in action_sequence:
+            if not found[0] and md.get_move_type(hand)['type'] == md.TYPE_2_PAIR:
+                state[feat_2_offset + feat_2_size * opp_ind + 21] = 1
+                found[0] = True
+            elif not found[1] and md.get_move_type(hand)['type'] == md.TYPE_3_TRIPLE:
+                state[feat_2_offset + feat_2_size * opp_ind + 22] = 1
+                found[1] = True
+            elif not found[2] and md.get_move_type(hand)['type'] == md.TYPE_4_STRAIGHT:
+                state[feat_2_offset + feat_2_size * opp_ind + 24] = 1
+                found[2] = True
+            elif not found[3] and md.get_move_type(hand)['type'] == md.TYPE_5_FLUSH:
+                state[feat_2_offset + feat_2_size * opp_ind + 25] = 1
+                found[3] = True
+            elif not found[4] and md.get_move_type(hand)['type'] == md.TYPE_6_FULLHOUSE:
+                state[feat_2_offset + feat_2_size * opp_ind + 26] = 1
+                found[4] = True
+
+    feat_3_offset = feat_2_offset + (13 + 8 + 6) * 3
+    global_high_cards = [_ for _ in range(36, 52)]  # {Qd, Qc, ..., 2d, 2c, 2h, 2s}
+    for card_ind, high_card in enumerate(global_high_cards):
+        if high_card in total_played_cards:
+            state[feat_3_offset + card_ind] = 1
+
+    feat_4_offset = 16 + feat_3_offset
+    # get most recent non-pass move
+    if len(action_sequence) != 0:
+        if len(action_sequence[-1]) == 0:
+            if len(action_sequence[-2]) == 0:
+                if len(action_sequence[-3]) == 0:
+                    rival_move = []
+                    passes = -1  # for easy indexing
+                else:
+                    rival_move = action_sequence[-3]
+                    passes = 2
+            else:
+                rival_move = action_sequence[-2]
+                passes = 1
+        else:
+            rival_move = action_sequence[-1]
+            passes = 0
+    else:
+        rival_move = []
+        passes = -1
+
+    if rival_move != []:
+        max_card = max(rival_move)
+        max_card_rank, max_card_suit = max_card // 4, max_card % 4
+        state[feat_4_offset + max_card_rank] = 1
+        state[feat_4_offset + 13 + max_card_suit] = 1
+
+    # get the type of the previous move played
+    rival_type = md.get_move_type(rival_move)['type']
+    if rival_type == md.TYPE_1_SINGLE:
+        state[feat_4_offset + 17] = 1
+    elif rival_type == md.TYPE_2_PAIR:
+        state[feat_4_offset + 18] = 1
+    elif rival_type == md.TYPE_3_TRIPLE:
+        state[feat_4_offset + 19] = 1
+    elif rival_type == md.TYPE_4_STRAIGHT or rival_type == md.TYPE_8_STRAIGHTFLUSH:
+        state[feat_4_offset + 22] = 1
+    elif rival_type == md.TYPE_5_FLUSH or rival_type == md.TYPE_8_STRAIGHTFLUSH:
+        state[feat_4_offset + 23] = 1
+    elif rival_type == md.TYPE_6_FULLHOUSE:
+        state[feat_4_offset + 24] = 1
+    # 25 = control, 26 = 0 pass, 27 = 1 pass, 28 = 2 passes
+    state[feat_4_offset + 26 + passes] = 1
+    return state
 
 
 def _get_one_hot_array(num_left_cards, max_num_cards):

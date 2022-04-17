@@ -27,6 +27,29 @@ log.setLevel(logging.INFO)
 Buffers = typing.Dict[str, typing.List[torch.Tensor]]
 
 
+def hand_to_string(x):
+    hand = []
+    ranks = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
+    suits = ['d', 'c', 'h', 's']
+    for card in x:
+        hand.append(ranks[card // 4] + suits[card % 4])
+    hand_str = ','.join(hand)
+    return hand_str
+
+
+def string_to_hand(x):
+    # example: '3d,3h,8h,9h,Th,Jh,Qh,Kc,Ks,As,Ad,2c'
+    ranks = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
+    suits = ['d', 'c', 'h', 's']
+    x_list = x.split(",")
+    hand = []
+    for i in x_list:
+        rank_val = ranks.index(i[0])
+        suit_val = suits.index(i[1])
+        hand.append(rank_val*4 + suit_val)
+    return sorted(hand)
+
+
 def get_batch(free_queue,
               full_queue,
               buffers,
@@ -125,10 +148,13 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
 
         # outer loop plays infinite deals (is never broken), inner while loop corresponds to one game
         while True:
-            # once Environment.step is called and game is over, Env.reset will be called which
-            # automatically assigns new hands to players.
-            # re-initialise action indices and reverse indices at end of every game to avoid recomputation
-            ppo_agent.load_indices_lookup(env.env.infoset.player_hand_cards)
+            # load starting hands for each player
+            starting_hands = {}
+            start_pos = Position[position].value
+            for idx in range(start_pos, start_pos+4):
+                pos_name = Position(idx % 4).name
+                hand = env.env._env.info_sets[pos_name].player_hand_cards
+                starting_hands[pos_name] = hand
             while True:
                 # save current turn's possible state (obs_x_no_action) and historical moves (obs_z)
                 obs_x_no_action_buf[position].append(env_output['obs_x_no_action'])
@@ -142,11 +168,22 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                     action = obs['legal_actions'][_action_idx]
                 else:
                     if flags.opponent_agent == 'ppo':
+                        ppo_agent.set_starting_hand(starting_hands[position])
                         action = ppo_agent.act(env.env)
                     elif flags.opponent_agent == 'prior':
                         pass  # TODO
                     else:  # random agent
                         action = random_agent.act(env.env.infoset)
+                        # TODO remove this
+                        action_ppo = ppo_agent.act(env.env)
+                        """print("Hand: {}, last move: {}, rand: {}, ppo: {}, handlen rand {}, ppo {}" .format(
+                            hand_to_string(env.env.infoset.player_hand_cards),
+                            hand_to_string(env.env.infoset.last_move),
+                            hand_to_string(action),
+                            hand_to_string(action_ppo),
+                            len(action),
+                            len(action_ppo)
+                        ))"""
                 # save current turn's action (as 1 hot torch tensor) to the corresponding buffer
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position

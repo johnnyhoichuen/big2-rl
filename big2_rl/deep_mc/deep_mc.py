@@ -47,11 +47,15 @@ def learn(actor_models,
         # (obs_x) should ge size (NL,559)
         learner_outputs = model(obs_z, obs_x, return_value=True)
         loss = compute_loss(learner_outputs['values'], target)  # compute loss
+        mean_ep_ret = torch.mean(
+            torch.stack([_r for _r in mean_episode_return_buf])).item()
         stats = {
-            'mean_episode_return_actor': torch.mean(
-                torch.stack([_r for _r in mean_episode_return_buf])).item(),
+            'mean_episode_return_actor': mean_ep_ret,
             'loss': loss.item(),
         }
+        # TODO
+        print("ep_ret: {} | buffer: {} | mean_ep_ret: {} | ep_ret_shape: {}" .format(
+            episode_returns, mean_episode_return_buf, mean_ep_ret, episode_returns.shape))
 
         # backpropagation and gradient clipping
         optimizer.zero_grad()

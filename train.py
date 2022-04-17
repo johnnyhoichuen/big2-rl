@@ -60,7 +60,7 @@ if __name__ == '__main__':
     flags = parser.parse_args()
 
     # (re-)initialise game settings for training
-    parse_game_settings(flags)
+    gs = parse_game_settings(flags)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)

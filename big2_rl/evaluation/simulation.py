@@ -5,16 +5,19 @@ from big2_rl.env.game import GameEnv, Position
 
 from .random_agent import RandomAgent
 from .dmc_agent import DMCAgent
+from .ppo_agent import PPOAgent
 
 
 def load_models(model_path):
     """
-    Loads a specified agent type (random or deep MC)
+    Loads a specified agent type (random, PPO or deep MC)
     """
     players = {}
     for p in Position:
         if model_path[p.name] == 'random':
             players[p.name] = RandomAgent()
+        elif model_path[p.name] == 'ppo':
+            players[p.name] = PPOAgent()
         else:
             players[p.name] = DMCAgent(model_path)
     return players

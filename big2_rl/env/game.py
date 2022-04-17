@@ -127,6 +127,14 @@ class GameEnv(object):
             elif hand_size == 0:
                 self.winner = pos.name
                 self.num_wins[pos.name] += 1
+        """if count > 100:  # TODO
+            g_x = GameSettings.getInstance().get_attrs()['penalty_threshold']
+            from big2_rl.deep_mc.utils import hand_to_string
+            print("penalty_mult {} | hand_S: {} | hand_N: {} | hand_E: {} | hand_W: {} | g_x: {}" .format(penalty_multiplier, hand_to_string(self.info_sets["SOUTH"].player_hand_cards),
+                                                       hand_to_string(self.info_sets["NORTH"].player_hand_cards),
+                                                       hand_to_string(self.info_sets["EAST"].player_hand_cards),
+                                                       hand_to_string(self.info_sets["WEST"].player_hand_cards), g_x))
+            exit()"""
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count

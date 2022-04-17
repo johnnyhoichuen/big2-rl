@@ -9,24 +9,23 @@ def is_valid_straight(input_combination):
     # here [0,1,2,11,12] should return True since it contains the same values as [11,12,0,1,2]
     for possible_straight in GameSettings.getInstance().get_attrs()['straight_orders']:
         # if intersection has length 5, then all elements in one set present in another
-        if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight)) == 5:
+        if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
             # check if all have same suits, if yes return false
             if len(set(map(lambda x: x % 4, input_combination))) == 1:
                 return False
             else:
                 return True
-        else:
-            return False
+    return False  # we have to check every straight before we can say it is not a straight
 
 
 # determine if a list of length 5 (each element corresponding to a card value) is a valid flush but not SF
 def is_valid_flush(input_combination):
-    if len(set(map(lambda x: x % 4, input_combination))) == 1:  # check if all have same suits, if yes return true
+    if len(set(map(lambda x: x % 4, input_combination))) == 1:  # check if all have same suits, if no return false
+        # if yes check if it is SF. Need to check all straights to ensure flush is not SF.
         for possible_straight in GameSettings.getInstance().get_attrs()['straight_orders']:
-            if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight)) == 5:
+            if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
                 return False
-            else:
-                return True
+        return True
     else:
         return False
 

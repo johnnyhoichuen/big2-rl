@@ -15,6 +15,7 @@ class GameSettings:
 
     @staticmethod
     def getInstance():
+        # TODO there is a bug. Penalty threshold (and parser args?) keep getting reset
         """Static access method."""
         if not GameSettings.__instance:
             GameSettings.__instance = GameSettings()

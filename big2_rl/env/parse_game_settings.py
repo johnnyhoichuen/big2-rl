@@ -24,3 +24,4 @@ def parse_game_settings(args):
     else:
         pt_list = [8, 10, 13]  # else use default value
     gs.set_penalty_threshold(pt_list)
+    return gs
