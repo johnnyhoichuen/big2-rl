@@ -8,7 +8,7 @@ parser.add_argument('--penalise_quads', default=1, type=int,
                     help='Multiplicative penalty for a player if they have 1 or more unplayed quads')
 parser.add_argument('--penalise_sf', default=1, type=int,
                     help='Multiplicative penalty for a player if they have 1 or more unplayed straight flushes')
-parser.add_argument('--penalise_deuces', default=2, type=int,
+parser.add_argument('--penalise_deuces', default=1, type=int,
                     help='Multiplicative penalty for a player if they have 1 or more unplayed deuces')
 parser.add_argument('--reward_quads', default=1, type=int,
                     help='Multiplicative reward for a player if they win and their last move was quads')

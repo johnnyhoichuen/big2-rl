@@ -1,7 +1,7 @@
 from copy import deepcopy
 from . import move_detector as md, move_selector as ms
 from .move_generator import MovesGener
-from big2_rl.env.settings import GameSettings
+from big2_rl.env.settings import Settings
 from enum import Enum, unique
 
 
@@ -117,8 +117,8 @@ class GameEnv(object):
             hand_size = len(self.info_sets[pos.name].player_hand_cards)
             if hand_size > 0:
                 penalty_multiplier = 1
-                for i in range(len(GameSettings.get_attrs()['penalty_threshold'])):
-                    if hand_size >= GameSettings.get_attrs()['penalty_threshold'][i]:
+                for i in range(len(Settings.get_attrs()['penalty_threshold'])):
+                    if hand_size >= Settings.get_attrs()['penalty_threshold'][i]:
                         penalty_multiplier += 1
                 # TODO more penalty multiplier logic needed here
                 self.player_reward_dict[pos.name] = -hand_size * penalty_multiplier
@@ -127,14 +127,8 @@ class GameEnv(object):
             elif hand_size == 0:
                 self.winner = pos.name
                 self.num_wins[pos.name] += 1
-        """if count > 100:  # TODO
-            g_x = GameSettings.getInstance().get_attrs()['penalty_threshold']
-            from big2_rl.deep_mc.utils import hand_to_string
-            print("penalty_mult {} | hand_S: {} | hand_N: {} | hand_E: {} | hand_W: {} | g_x: {}" .format(penalty_multiplier, hand_to_string(self.info_sets["SOUTH"].player_hand_cards),
-                                                       hand_to_string(self.info_sets["NORTH"].player_hand_cards),
-                                                       hand_to_string(self.info_sets["EAST"].player_hand_cards),
-                                                       hand_to_string(self.info_sets["WEST"].player_hand_cards), g_x))
-            exit()"""
+        #if count > 2:  # TODO for debugging
+        #    print("PT: {}" .format(Settings.get_attrs()['penalty_threshold']))
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count

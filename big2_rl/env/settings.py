@@ -1,10 +1,11 @@
 # should only create one instance of this class
-# singleton: https://stackoverflow.com/questions/31269974/why-singleton-in-python-calls-init-multiple-times-and-how-to-avoid-it
+# singleton: https://stackoverflow.com/questions/12305142/issue-with-singleton-python-call-two-times-init
 
-class GameSettings:
+class GameSettings(object):
     """
     defines the settings to use for Big Two (including penalties, flush/straight rankings)
     """
+    __instance = None
 
     # if FLUSH_ORDERBY_RANK is used 2h Qh Jh 9h 4h > 2s Qs Ts 7s 6s
     # if FLUSH_ORDERBY_SUIT is used 2h Qh Jh 9h 4h < 2s Qs Ts 7s 6s since spade > heart > club > diamond
@@ -12,30 +13,31 @@ class GameSettings:
     CONST_FLUSH_ORDERBY_RANK = 0
     CONST_FLUSH_ORDERBY_SUIT = 1
 
-    # NOTE there used to be a bug with penalty threshold (and parser args?) keep getting reset.
+    # TODO there is still a bug with penalty threshold (and parser args?) keep getting reset.
     # Removed 'static' getInstance method, now treat entire class as a module
 
-    unused = """@staticmethod
-    def getInstance():
-        Static access method.
-        if not GameSettings.__instance:
-            GameSettings.__instance = GameSettings()
-        return GameSettings.__instance"""
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = super(GameSettings, cls).__new__(cls)
+            cls.__instance.__initialized = False
+        return cls.__instance
 
-    def __init__(self, penalise_quads=1, penalise_sf=1, penalise_deuces=2,
-                 reward_quads=1, reward_sf=1, reward_deuces=1,
-                 penalty_threshold=None):
+    def __init__(self):
+        if self.__initialized:
+            return
+        self.__initialized = True
+        print("INIT")
 
         # in some variations if losing players still have deuces, 1 or more SF, or 1 or more quads, then
         # the winner's reward is doubled
-        self._penalise_quads = penalise_quads
-        self._penalise_sf = penalise_sf
-        self._penalise_deuces = penalise_deuces
+        self._penalise_quads = 1
+        self._penalise_sf = 1
+        self._penalise_deuces = 1
 
         # in some variations if winning player ends with a deuce, SF or quads their reward is doubled
-        self._reward_quads = reward_quads
-        self._reward_sf = reward_sf
-        self._reward_deuces = reward_deuces
+        self._reward_quads = 1
+        self._reward_sf = 1
+        self._reward_deuces = 1
 
         self._flush_orders = GameSettings.CONST_FLUSH_ORDERBY_RANK
 
@@ -49,10 +51,7 @@ class GameSettings:
                                  [_ for _ in range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
 
         # 8-9 cards = double, 10-12 cards = triple, 13 cards = quadruple
-        if penalty_threshold:
-            self._penalty_threshold = penalty_threshold
-        else:
-            self._penalty_threshold = [8, 10, 13]
+        self._penalty_threshold = [8, 10, 13]
 
     def set_straight_order(self, straight_order=None):
         """
@@ -127,4 +126,4 @@ class GameSettings:
         self._penalty_threshold = pt
 
 
-GameSettings = GameSettings()
+Settings = GameSettings()

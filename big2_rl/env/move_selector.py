@@ -1,5 +1,5 @@
 # return a list of all moves that can beat an opponent
-from big2_rl.env.settings import GameSettings
+from big2_rl.env.settings import Settings
 
 
 # `moves` is a list of a move of some type (e.g. pair) where each element is a move represented by a list of integer ids
@@ -36,7 +36,7 @@ def filter_type_4_straight(moves, opponent_move):
         opp_straight_index = -1
 
         # s_i = index or rank of the straight with value 'straight', the higher, the better
-        for s_i, straight in enumerate(GameSettings.get_attrs()['straight_orders']):
+        for s_i, straight in enumerate(Settings.get_attrs()['straight_orders']):
             straight_as_set = set(straight)
             if len(move_ranks.intersection(straight_as_set)) == 5:
                 move_straight_index = s_i
@@ -59,8 +59,8 @@ def filter_type_5_flush(moves, opponent_move):
     new_moves = []
     for move in moves:
 
-        if GameSettings.get_attrs()['flush_orders'] == \
-                GameSettings.CONST_FLUSH_ORDERBY_SUIT:  # first compare by suit, then by rank
+        if Settings.get_attrs()['flush_orders'] == \
+                Settings.CONST_FLUSH_ORDERBY_SUIT:  # first compare by suit, then by rank
             if list(map(lambda x: x % 4, move))[0] > list(map(lambda x: x % 4, opponent_move))[0]:
                 new_moves.append(move)
             elif list(map(lambda x: x % 4, move))[0] == list(map(lambda x: x % 4, opponent_move))[0]:
@@ -68,8 +68,8 @@ def filter_type_5_flush(moves, opponent_move):
                 if move[len(move)-1] > opponent_move[len(move)-1]:
                     new_moves.append(move)
                     
-        elif GameSettings.get_attrs()['flush_orders'] == \
-                GameSettings.CONST_FLUSH_ORDERBY_RANK:  # first compare by rank, then by suit
+        elif Settings.get_attrs()['flush_orders'] == \
+                Settings.CONST_FLUSH_ORDERBY_RANK:  # first compare by rank, then by suit
             move_ranks = list(map(lambda x: x//4, move))[::-1]
             opp_move_ranks = list(map(lambda x: x//4, opponent_move))[::-1]
             # does elementwise comparison of the ranks in each flush in descending order

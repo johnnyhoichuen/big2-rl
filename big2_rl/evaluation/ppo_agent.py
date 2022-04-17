@@ -88,7 +88,7 @@ class PPOAgent:
         # NOTE that computation of straight and flush (esp. straight) is quite large.
         # If want to reduce performance bottleneck with minimal effect on PPO Model prediction, can
         # consider dropping these features
-        self.in_hand = [mg.gen_type_2_pair(), mg.gen_type_3_triple(), [], mg.gen_type_4_straight(),
+        self.in_hand = [mg.gen_type_2_pair(), mg.gen_type_3_triple(), [], [],
                         mg.gen_type_5_flush()]
 
     def load_indices_lookup(self):

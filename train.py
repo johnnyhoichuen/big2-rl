@@ -67,6 +67,8 @@ if __name__ == '__main__':
     flags.actor_device_cpu = True
     flags.training_device = "cpu"
     flags.opponent_agent = "ppo"
+    print(flags.penalty_threshold)
+    print(gs.get_attrs()['penalty_threshold'])
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)
