@@ -73,8 +73,7 @@ class PPOAgent:
             self.starting_hand = None
             self.action_indices_5, self.inverse_indices_5, \
                 self.action_indices_3, self.inverse_indices_3, \
-                self.action_indices_2, self.inverse_indices_2, \
-                self.action_indices_1, self.inverse_indices_1 = 0, 0, 0, 0, 0, 0, 0, 0
+                self.action_indices_2, self.inverse_indices_2 = 0, 0, 0, 0, 0, 0
 
     def load_indices_lookup(self, hand):
         self.starting_hand = hand  # initialise a starting hand of 13 cards
@@ -126,6 +125,9 @@ class PPOAgent:
         if len(infoset.legal_actions) == 1:  # default case
             return infoset.legal_actions[0]
 
+        # num singles, num singles+pairs, num singles+pairs+triples, num all except pass
+        number_of_actions = [13, 46, 407, 1694]
+
         #### get available actions
         available_actions = np.full(shape=(self.act_dim,), fill_value=np.NINF)  # size 1695
         # note that the PPO model also considers 4-card moves to be valid (four of a kind or two pairs). In our ruleset,
@@ -146,14 +148,15 @@ class PPOAgent:
             nn_input_ind = None
             assert type(self.action_indices_3) is not int
             if len(possible_move_as_ind) == 2:
-                nn_input_ind = self.action_indices_2[possible_move_as_ind[0], possible_move_as_ind[1]] + 13
+                nn_input_ind = self.action_indices_2[possible_move_as_ind[0], possible_move_as_ind[1]] + \
+                               number_of_actions[0]
             elif len(possible_move_as_ind) == 3:
                 nn_input_ind = self.action_indices_3[possible_move_as_ind[0], possible_move_as_ind[1],
-                                                     possible_move_as_ind[2]] + 46
+                                                     possible_move_as_ind[2]] + number_of_actions[1]
             elif len(possible_move_as_ind) == 5:
                 nn_input_ind = self.action_indices_5[possible_move_as_ind[0], possible_move_as_ind[1],
                                                      possible_move_as_ind[2], possible_move_as_ind[3],
-                                                     possible_move_as_ind[4]] + 407
+                                                     possible_move_as_ind[4]] + number_of_actions[2]
             elif len(possible_move_as_ind) == 1:
                 nn_input_ind = possible_move_as_ind[0]
             assert nn_input_ind is not None
@@ -226,7 +229,7 @@ class PPOAgent:
                 elif not found[3] and md.get_move_type(hand)['type'] == md.TYPE_5_FLUSH:
                     state[feat_2_offset+feat_2_size*opp_ind + 25] = 1
                     found[3] = True
-                elif not found[3] and md.get_move_type(hand)['type'] == md.TYPE_6_FULLHOUSE:
+                elif not found[4] and md.get_move_type(hand)['type'] == md.TYPE_6_FULLHOUSE:
                     state[feat_2_offset+feat_2_size*opp_ind + 26] = 1
                     found[4] = True
 
@@ -279,12 +282,31 @@ class PPOAgent:
         # 25 = control, 26 = 0 pass, 27 = 1 pass, 28 = 2 passes
         state[feat_4_offset + 26 + passes] = 1
 
+        # after computing state and action, make forward pass
+        state = torch.from_numpy(state)
+        available_actions = torch.from_numpy(available_actions)
         if torch.cuda.is_available():
-            state = torch.from_numpy(state)
-            available_actions = torch.from_numpy(available_actions)
             state, available_actions = state.cuda(), available_actions.cuda()
         pred_action = self.model_pytorch.forward(state, available_actions)['out_action'].detach().cpu().numpy()
+        assert pred_action.shape[0] == self.act_dim
+
         # TODO convert the output back to action
         best_action_index = np.argmax(pred_action, axis=0)[0]
-        best_action = infoset.legal_actions[best_action_index]
-        return best_action
+        if best_action_index == number_of_actions[3]:
+            return []
+        elif best_action_index >= number_of_actions[2]:
+            v = self.inverse_indices_5[best_action_index-number_of_actions[2]].tolist()
+        elif best_action_index >= 77:
+            raise Exception("invalid action index: played 4-card move")
+        elif best_action_index >= number_of_actions[1]:
+            v = self.inverse_indices_3[best_action_index-number_of_actions[1]].tolist()
+        elif best_action_index >= number_of_actions[0]:
+            v = self.inverse_indices_2[best_action_index-number_of_actions[0]].tolist()
+        elif best_action_index >= 0:
+            return [self.starting_hand[best_action_index]]
+        else:
+            raise Exception("PPO action index < 0")
+        move = []
+        for i in v:
+            move.append(self.starting_hand[i])
+        return move
