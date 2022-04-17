@@ -7,4 +7,4 @@ __pycache__/
 big2rl_checkpoints/
 
 # slurm report
-slurm_report/slurm-*.out
+**/slurm-*.out
