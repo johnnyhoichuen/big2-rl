@@ -168,11 +168,18 @@ class GameEnv(object):
     def get_last_move(self):
         """
         get the last move made, i.e. a list of ints corresponding to the cards of the last move made
+        TODO: is this never used?
         """
         last_move = []
         if len(self.card_play_action_seq) != 0:
             if len(self.card_play_action_seq[-1]) == 0:
-                last_move = self.card_play_action_seq[-2]
+                if len(self.card_play_action_seq[-2]) == 0:
+                    if len(self.card_play_action_seq[-3]) == 0:
+                        last_move = []
+                    else:
+                        last_move = self.card_play_action_seq[-3]
+                else:
+                    last_move = self.card_play_action_seq[-2]
             else:
                 last_move = self.card_play_action_seq[-1]
 
@@ -181,6 +188,7 @@ class GameEnv(object):
     def get_last_two_moves(self):
         """
         get the last 2 moves made, i.e. a list of ints corresponding to the cards of the last move made
+        TODO: is this never used?
         """
         last_two_moves = [[], []]
         for card in self.card_play_action_seq[-2:]:
@@ -207,7 +215,7 @@ class GameEnv(object):
         """
         if acting player did not pass, remove the cards they played from their hand
         """
-        if action is not []:
+        if action != []:
             for card in action:
                 self.info_sets[self.acting_player_position].player_hand_cards.remove(card)
             self.info_sets[self.acting_player_position].player_hand_cards.sort()

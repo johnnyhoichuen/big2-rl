@@ -21,18 +21,20 @@ class PPONetworkPytorch(nn.Module):
         self.dense2b = nn.Linear(512, 256)
         self.dense3b = nn.Linear(256, 1)
         self.dense3a = nn.Linear(256, act_dim)
+        self.action_softmax = nn.Softmax()
 
     def forward(self, y, a):  # y = input state, a = available actions (apply as mask to output of layer 3a)
-        y = torch.relu(self.dense1(y))
+        y = self.dense1(y)
+        y = torch.relu(y)
         y_1 = torch.relu(self.dense3a(torch.relu(self.dense2a(y))))
         value = torch.relu(self.dense3b(torch.relu(self.dense2b(y))))
-        out_action = torch.nn.Softmax(a + y_1)
+        out_action = self.action_softmax(a + y_1)
         # see: http://aaai-rlg.mlanctot.info/papers/AAAI19-RLG-Paper02.pdf
         # input_state_value: value of the given input state. A 1*1 tensor.
         # out_action: probability weighting of each potentially allowable move. A 1695*1 tensor.
         # We ensure no illegal moves can be made by having a (Available actions) come as a mask with all legal actions 0
         # and all illegal actions -inf.
-        return {'input_state_value': value, 'out_action': out_action}
+        return dict(input_state_value=value, out_action=out_action)
 
 
 class PPOAgent:
@@ -45,9 +47,13 @@ class PPOAgent:
 
         # load the Big2PPO model's pretrained parameters
         self.model_pytorch = PPONetworkPytorch(self.obs_dim, self.act_dim)
+
         params = joblib.load("modelParameters136500")  # directly downloaded from Charlesworth's github repo
         for i, np_param in enumerate(params):
             param = torch.from_numpy(np_param)
+            if i % 2 == 0:  # otherwise, encounters error when pass through forward()
+                param = torch.transpose(param, 0, 1)
+
             if i == 0:
                 self.model_pytorch.dense1.weight = torch.nn.Parameter(param)
             elif i == 1:
@@ -79,8 +85,8 @@ class PPOAgent:
         self.starting_hand = hand  # initialise a starting hand of 13 cards
 
         # idea: given hand (list of ints), get its indices, then get its NN input representation
-        self.action_indices_5 = np.zeros((13, 13, 13, 13, 13))
-        self.inverse_indices_5 = np.zeros((1287, 5))  # since 13 choose 5 = 1287
+        self.action_indices_5 = np.zeros((13, 13, 13, 13, 13), dtype=np.int16)
+        self.inverse_indices_5 = np.zeros((1287, 5), dtype=np.int16)  # since 13 choose 5 = 1287
         i_5 = 0
         for c_1 in range(0, 9):
             for c_2 in range(c_1 + 1, 10):
@@ -91,24 +97,24 @@ class PPOAgent:
                             self.inverse_indices_5[i_5] = np.array([c_1, c_2, c_3, c_4, c_5])
                             i_5 += 1
 
-        self.action_indices_3 = np.zeros((13, 13, 13))
-        self.inverse_indices_3 = np.zeros((31, 3))
+        self.action_indices_3 = np.zeros((13, 13, 13), dtype=np.int16)
+        self.inverse_indices_3 = np.zeros((31, 3), dtype=np.int16)
         i_3 = 0
         for c_1 in range(0, 11):
-            n_31 = min(c_1 + 2, 11)
-            for c_2 in range(c_1 + 1, n_31 + 1):
-                n_32 = min(c_2 + 3, 12)
-                for c_3 in range(c_2 + 1, n_32 + 1):
+            n_1 = min(c_1 + 2, 11)
+            for c_2 in range(c_1 + 1, n_1 + 1):
+                n_2 = min(c_1 + 3, 12)
+                for c_3 in range(c_2 + 1, n_2 + 1):
                     self.action_indices_3[c_1, c_2, c_3] = i_3
                     self.inverse_indices_3[i_3] = np.array([c_1, c_2, c_3])
                     i_3 += 1
 
-        self.action_indices_2 = np.zeros((13, 13))
-        self.inverse_indices_2 = np.zeros((33, 3))
+        self.action_indices_2 = np.zeros((13, 13), dtype=np.int16)
+        self.inverse_indices_2 = np.zeros((33, 2), dtype=np.int16)
         i_2 = 0
         for c_1 in range(0, 12):
-            n_21 = min(c_1 + 3, 12)
-            for c_2 in range(c_1 + 1, n_21 + 1):
+            n_1 = min(c_1 + 3, 12)
+            for c_2 in range(c_1 + 1, n_1 + 1):
                 self.action_indices_2[c_1, c_2] = i_2
                 self.inverse_indices_2[i_2] = np.array([c_1, c_2])
                 i_2 += 1
@@ -120,7 +126,7 @@ class PPOAgent:
         However, if only one action is legal (pass), then take that action.
         """
         infoset = game_env.infoset
-        action_sequence = game_env.card_play_action_seq
+        action_sequence = game_env._env.card_play_action_seq
 
         if len(infoset.legal_actions) == 1:  # default case
             return infoset.legal_actions[0]
@@ -129,7 +135,7 @@ class PPOAgent:
         number_of_actions = [13, 46, 407, 1694]
 
         #### get available actions
-        available_actions = np.full(shape=(self.act_dim,), fill_value=np.NINF)  # size 1695
+        available_actions = np.full(shape=(self.act_dim,), fill_value=np.NINF, dtype=np.float32)  # size 1695
         # note that the PPO model also considers 4-card moves to be valid (four of a kind or two pairs). In our ruleset,
         # these will always be invalid moves.
         if infoset.last_move is not []:  # if last move is not pass, make pass an available move
@@ -143,6 +149,10 @@ class PPOAgent:
                 for card in possible_move:
                     if val == card:
                         possible_move_as_ind.append(i)
+
+            #print(self.starting_hand)
+            #print(possible_move)
+            #print(possible_move_as_ind)
             # since num of moves with 1 card: 13, 2 cards: 33, 3 cards: 31, 4 cards: 330, 5 cards: 1287,
             # need to add offset. Eg for 3-card hands, need add offset of 1-card and 2-card (13+33=46)
             nn_input_ind = None
@@ -159,6 +169,10 @@ class PPOAgent:
                                                      possible_move_as_ind[4]] + number_of_actions[2]
             elif len(possible_move_as_ind) == 1:
                 nn_input_ind = possible_move_as_ind[0]
+            elif len(possible_move_as_ind) == 0:  # pass
+                nn_input_ind = number_of_actions[3]
+            #print(nn_input_ind)
+            #print("========")
             assert nn_input_ind is not None
             available_actions[nn_input_ind] = 0
 
@@ -174,7 +188,7 @@ class PPOAgent:
         # non-pass-move (4) + previousMoveIsSingle,Pr,Triple,2Pr,Quad,Str,Flush,FH (8) + control,0pass,1pass,2pass (4)
         # Total for (4): 13+4+8+4
         # size of state: (13+4+5)*13 + (13+8+6)*3 + 16 + (13+4+8+4) = 412
-        state = np.zeros((self.obs_dim,))
+        state = np.zeros((self.obs_dim,), dtype=np.float32)
         feat_1_size = 13+4+5
         mg = MovesGener(infoset.player_hand_cards)
         for index, card in enumerate(self.starting_hand):
@@ -200,7 +214,7 @@ class PPOAgent:
         feat_2_offset = (13+4+5)*13
         feat_2_size = 13+8+6
         this_position = Position[infoset.player_position].value
-        total_played_cards = infoset.played_cards[this_position]  # for feature 3
+        total_played_cards = infoset.played_cards[infoset.player_position]  # for feature 3
         # get list of opponent positions in order
         position_range = [_ % 4 for _ in range(this_position + 1, this_position + 4)]
         for opp_ind, pos in enumerate(position_range):
@@ -257,9 +271,12 @@ class PPOAgent:
             else:
                 rival_move = action_sequence[-1]
                 passes = 0
+        else:
+            rival_move = []
+            passes = -1
         assert passes != -99
 
-        if rival_move is not []:
+        if rival_move != []:
             max_card = max(rival_move)
             max_card_rank, max_card_suit = max_card // 4, max_card % 4
             state[feat_4_offset + max_card_rank] = 1
@@ -285,13 +302,16 @@ class PPOAgent:
         # after computing state and action, make forward pass
         state = torch.from_numpy(state)
         available_actions = torch.from_numpy(available_actions)
+
         if torch.cuda.is_available():
             state, available_actions = state.cuda(), available_actions.cuda()
+        # print(state.shape)  # should be size 1*self.obs_dim
+        # print(available_actions.shape)  # should be size 1*self.act_dim
         pred_action = self.model_pytorch.forward(state, available_actions)['out_action'].detach().cpu().numpy()
         assert pred_action.shape[0] == self.act_dim
 
-        # TODO convert the output back to action
-        best_action_index = np.argmax(pred_action, axis=0)[0]
+        # convert the output back to action
+        best_action_index = np.argmax(pred_action)
         if best_action_index == number_of_actions[3]:
             return []
         elif best_action_index >= number_of_actions[2]:
