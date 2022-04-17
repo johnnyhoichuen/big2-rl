@@ -53,9 +53,6 @@ def learn(actor_models,
             'mean_episode_return_actor': mean_ep_ret,
             'loss': loss.item(),
         }
-        # TODO
-        print("ep_ret: {} | buffer: {} | mean_ep_ret: {} | ep_ret_shape: {}" .format(
-            episode_returns, mean_episode_return_buf, mean_ep_ret, episode_returns.shape))
 
         # backpropagation and gradient clipping
         optimizer.zero_grad()

@@ -128,7 +128,7 @@ class GameEnv(object):
                 self.winner = pos.name
                 self.num_wins[pos.name] += 1
         #if count > 2:  # TODO for debugging
-        #    print("PT: {}" .format(Settings.get_attrs()['penalty_threshold']))
+        #    print("PT: {}, {}" .format(Settings.get_attrs()['penalty_threshold'], Settings.__class__.__module__))
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count
