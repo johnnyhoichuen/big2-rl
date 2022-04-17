@@ -5,3 +5,7 @@
 .idea
 __pycache__/
 big2rl_checkpoints/
+
+# slurm report
+**/slurm-*.out
+slurm-*.out
