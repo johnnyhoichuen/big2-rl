@@ -174,16 +174,6 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                         pass  # TODO
                     else:  # random agent
                         action = random_agent.act(env.env.infoset)
-                        # TODO remove this
-                        action_ppo = ppo_agent.act(env.env)
-                        """print("Hand: {}, last move: {}, rand: {}, ppo: {}, handlen rand {}, ppo {}" .format(
-                            hand_to_string(env.env.infoset.player_hand_cards),
-                            hand_to_string(env.env.infoset.last_move),
-                            hand_to_string(action),
-                            hand_to_string(action_ppo),
-                            len(action),
-                            len(action_ppo)
-                        ))"""
                 # save current turn's action (as 1 hot torch tensor) to the corresponding buffer
                 obs_action_buf[position].append(torch.from_numpy(_cards2array(action)))
                 # number of moves made by that position

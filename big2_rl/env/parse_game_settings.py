@@ -6,7 +6,7 @@ def parse_game_settings(args):
     Create GameSettings instance (if not defined) and updates singleton instance's attribute values
     (penalties, rewards, flush & straight orders)
     """
-    gs = GameSettings.getInstance()
+    gs = GameSettings
     gs.set_penalties_and_rewards(
         args.penalise_quads, args.penalise_sf, args.penalise_deuces,
         args.reward_quads, args.reward_sf, args.reward_deuces)

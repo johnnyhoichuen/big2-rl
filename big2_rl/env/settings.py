@@ -1,11 +1,10 @@
 # should only create one instance of this class
-# singleton: https://www.tutorialspoint.com/python_design_patterns/python_design_patterns_singleton.htm
+# singleton: https://stackoverflow.com/questions/31269974/why-singleton-in-python-calls-init-multiple-times-and-how-to-avoid-it
 
 class GameSettings:
     """
     defines the settings to use for Big Two (including penalties, flush/straight rankings)
     """
-    __instance = None
 
     # if FLUSH_ORDERBY_RANK is used 2h Qh Jh 9h 4h > 2s Qs Ts 7s 6s
     # if FLUSH_ORDERBY_SUIT is used 2h Qh Jh 9h 4h < 2s Qs Ts 7s 6s since spade > heart > club > diamond
@@ -13,13 +12,15 @@ class GameSettings:
     CONST_FLUSH_ORDERBY_RANK = 0
     CONST_FLUSH_ORDERBY_SUIT = 1
 
-    @staticmethod
+    # NOTE there used to be a bug with penalty threshold (and parser args?) keep getting reset.
+    # Removed 'static' getInstance method, now treat entire class as a module
+
+    unused = """@staticmethod
     def getInstance():
-        # TODO there is a bug. Penalty threshold (and parser args?) keep getting reset
-        """Static access method."""
+        Static access method.
         if not GameSettings.__instance:
             GameSettings.__instance = GameSettings()
-        return GameSettings.__instance
+        return GameSettings.__instance"""
 
     def __init__(self, penalise_quads=1, penalise_sf=1, penalise_deuces=2,
                  reward_quads=1, reward_sf=1, reward_deuces=1,
@@ -124,3 +125,6 @@ class GameSettings:
 
     def set_penalty_threshold(self, pt):
         self._penalty_threshold = pt
+
+
+GameSettings = GameSettings()

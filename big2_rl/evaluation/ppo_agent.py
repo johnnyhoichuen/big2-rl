@@ -74,6 +74,7 @@ class PPOAgent:
                 self.model_pytorch.dense3b.bias = torch.nn.Parameter(param)
 
             self.starting_hand = None
+            self.in_hand = None
             self.action_indices_5, self.inverse_indices_5, \
                 self.action_indices_3, self.inverse_indices_3, \
                 self.action_indices_2, self.inverse_indices_2 = 0, 0, 0, 0, 0, 0
@@ -82,8 +83,15 @@ class PPOAgent:
     def set_starting_hand(self, hand):
         self.starting_hand = hand  # initialise a starting hand of 13 cards
 
-    def load_indices_lookup(self):
+        from big2_rl.env.move_generator import MovesGener
+        mg = MovesGener(self.starting_hand)
+        # NOTE that computation of straight and flush (esp. straight) is quite large.
+        # If want to reduce performance bottleneck with minimal effect on PPO Model prediction, can
+        # consider dropping these features
+        self.in_hand = [mg.gen_type_2_pair(), mg.gen_type_3_triple(), [], mg.gen_type_4_straight(),
+                        mg.gen_type_5_flush()]
 
+    def load_indices_lookup(self):
         # idea: given hand (list of ints), get its indices, then get its NN input representation
         self.action_indices_5 = np.zeros((13, 13, 13, 13, 13), dtype=np.int16)
         self.inverse_indices_5 = np.zeros((1287, 5), dtype=np.int16)  # since 13 choose 5 = 1287
@@ -125,6 +133,7 @@ class PPOAgent:
         pass of model to get the suggested legal action.
         However, if only one action is legal (pass), then take that action.
         """
+
         infoset = game_env.infoset
         action_sequence = game_env._env.card_play_action_seq
         # num singles, num singles+pairs, num singles+pairs+triples, num all except pass
@@ -134,7 +143,7 @@ class PPOAgent:
             return infoset.legal_actions[0]
 
         # after computing state and action, make forward pass
-        state = torch.from_numpy(get_ppo_state(self.starting_hand, infoset, action_sequence))
+        state = torch.from_numpy(get_ppo_state(self.starting_hand, infoset, action_sequence, self.in_hand))
         available_actions = torch.from_numpy(get_ppo_action(
             self.starting_hand, infoset, num_of_actions,
             self.action_indices_2, self.action_indices_3, self.action_indices_5))

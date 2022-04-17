@@ -62,5 +62,11 @@ if __name__ == '__main__':
     # (re-)initialise game settings for training
     gs = parse_game_settings(flags)
 
+    # TODO remove
+    flags.num_actors = 5
+    flags.actor_device_cpu = True
+    flags.training_device = "cpu"
+    flags.opponent_agent = "ppo"
+
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)
