@@ -13,7 +13,7 @@ class Env:
     def __init__(self):
         """
         The objective for each agent is number of units won (which may vary depending on
-        the reward policy (whether or not unplayed 2's, quads, SFs etc double the penalty).
+        the reward policy (whether unplayed 2's, quads, SFs etc. double the penalty)).
         Here, we use dummy agents to isolate
         players and environments to have a more gym style
         interface. To achieve this, we use dummy players
@@ -94,7 +94,7 @@ class Env:
         """
         returns:
         InfoSet(String pos.name) containing all information of the current situation
-        (hands of all players, all historical moves, etc)
+        (hands of all players, all historical moves, etc.)
         """
         return self._env.game_infoset
 
@@ -201,7 +201,7 @@ def get_obs(infoset):
 
     # iterate through every position not the current position (i.e. not equal to infoset.player_position)
     # get value of position. store opponent features as [next, across, before] for all 4 players
-    # eg north stores opponent features as [west, south, east]
+    # e.g. north stores opponent features as [west, south, east]
     this_position = Position[infoset.player_position].value
     # get list of opponent positions in order
     position_range = [_ % 4 for _ in range(this_position + 1, this_position + 4)]
@@ -235,11 +235,11 @@ def get_obs(infoset):
     x_batch = np.hstack((my_handcards_batch,
                          other_handcards_batch,
                          last_action_batch,
-                         np.array(other_players_action_batch).reshape(num_legal_actions, 3, 52).reshape(
+                         np.array(other_players_action_batch).reshape((num_legal_actions, 3, 52)).reshape(
                              num_legal_actions, 52 * 3),
-                         np.array(other_players_num_cards_left_batch).reshape(num_legal_actions, 3, 13).reshape(
+                         np.array(other_players_num_cards_left_batch).reshape((num_legal_actions, 3, 13)).reshape(
                              num_legal_actions, 13 * 3),
-                         np.array(other_players_played_cards_batch).reshape(num_legal_actions, 3, 52).reshape(
+                         np.array(other_players_played_cards_batch).reshape((num_legal_actions, 3, 52)).reshape(
                              num_legal_actions, 52 * 3),
                          my_action_batch
                          ))

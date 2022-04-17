@@ -123,9 +123,12 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         ppo_agent = PPOAgent()
         #prior_agent = ?  # TODO
 
-        # outer loop plays infinite deals (is never broken)
+        # outer loop plays infinite deals (is never broken), inner while loop corresponds to one game
         while True:
-            # inner while loop corresponds to one deal
+            # once Environment.step is called and game is over, Env.reset will be called which
+            # automatically assigns new hands to players.
+            # re-initialise action indices and reverse indices at end of every game to avoid recomputation
+            ppo_agent.load_indices_lookup(env.env.infoset.player_hand_cards)
             while True:
                 # save current turn's possible state (obs_x_no_action) and historical moves (obs_z)
                 obs_x_no_action_buf[position].append(env_output['obs_x_no_action'])
@@ -139,7 +142,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                     action = obs['legal_actions'][_action_idx]
                 else:
                     if flags.opponent_agent == 'ppo':
-                        action = ppo_agent.act(env.env.infoset)
+                        action = ppo_agent.act(env.env)
                     elif flags.opponent_agent == 'prior':
                         pass  # TODO
                     else:  # random agent

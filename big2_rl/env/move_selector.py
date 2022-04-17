@@ -2,7 +2,7 @@
 from big2_rl.env.settings import *
 
 
-# `moves` is a list of a move of some type (eg pair) where each element is a move represented by a list of integer ids
+# `moves` is a list of a move of some type (e.g. pair) where each element is a move represented by a list of integer ids
 # `opponent_move` is a list of integer ids corresponding to the cards in the move an opponent has made
 def compare_max(moves, opponent_move):
     new_moves = list()
@@ -35,7 +35,7 @@ def filter_type_4_straight(moves, opponent_move):
         move_straight_index = -1
         opp_straight_index = -1
 
-        # s_i = index or rank of the straight with value 'straight'. the higher the better
+        # s_i = index or rank of the straight with value 'straight', the higher, the better
         for s_i, straight in enumerate(GameSettings.getInstance().get_attrs()['straight_orders']):
             straight_as_set = set(straight)
             if len(move_ranks.intersection(straight_as_set)) == 5:

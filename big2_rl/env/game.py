@@ -207,7 +207,7 @@ class GameEnv(object):
         """
         if acting player did not pass, remove the cards they played from their hand
         """
-        if action != []:
+        if action is not []:
             for card in action:
                 self.info_sets[self.acting_player_position].player_hand_cards.remove(card)
             self.info_sets[self.acting_player_position].player_hand_cards.sort()
@@ -223,10 +223,17 @@ class GameEnv(object):
         action_sequence = self.card_play_action_seq
 
         # get the most recent non-pass move and store this in `rival_move`
+        # if action sequence is empty or 3 most recent moves are pass (0 length), treat rival move as []
         rival_move = []
         if len(action_sequence) != 0:
             if len(action_sequence[-1]) == 0:
-                rival_move = action_sequence[-2]
+                if len(action_sequence[-2]) == 0:
+                    if len(action_sequence[-3]) == 0:
+                        rival_move = []
+                    else:
+                        rival_move = action_sequence[-3]
+                else:
+                    rival_move = action_sequence[-2]
             else:
                 rival_move = action_sequence[-1]
 
