@@ -1,7 +1,7 @@
 import os
 from big2_rl.evaluation.simulation import evaluate
-from big2_rl.deep_mc import parser
-from big2_rl.env.parse_game_settings import parse_game_settings
+from big2_rl.deep_mc.settings_parser_arguments import parser
+from big2_rl.env.parse_game_settings import parse_settings
 
 if __name__ == '__main__':
     # define which agents to place in which positions.
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # (re-)initialise game settings for evaluation
-    gs = parse_game_settings(args)
+    gs = parse_settings(args)
 
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
