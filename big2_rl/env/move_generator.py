@@ -1,5 +1,5 @@
 import itertools
-from big2_rl.env.settings import Settings
+import settings
 
 
 # determine if a list of length 5 (each element corresponding to a card value) is a valid straight but not SF
@@ -7,7 +7,7 @@ def is_valid_straight(input_combination):
     # convert each card value to its rank,
     # and check if each rank in the input combo has the same values as a potential straight
     # here [0,1,2,11,12] should return True since it contains the same values as [11,12,0,1,2]
-    for possible_straight in Settings.get_attrs()['straight_orders']:
+    for possible_straight in settings.straight_orders:
         # if intersection has length 5, then all elements in one set present in another
         if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
             # check if all have same suits, if yes return false
@@ -22,7 +22,7 @@ def is_valid_straight(input_combination):
 def is_valid_flush(input_combination):
     if len(set(map(lambda x: x % 4, input_combination))) == 1:  # check if all have same suits, if no return false
         # if yes check if it is SF. Need to check all straights to ensure flush is not SF.
-        for possible_straight in Settings.get_attrs()['straight_orders']:
+        for possible_straight in settings.straight_orders:
             if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
                 return False
         return True
@@ -32,7 +32,7 @@ def is_valid_flush(input_combination):
 
 # determine if a list of length 5 (each element corresponding to a card value) is a valid SF
 def is_valid_straight_flush(input_combination):
-    for possible_straight in Settings.get_attrs()['straight_orders']:
+    for possible_straight in settings.straight_orders:
         if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight)) == 5:
             # technically don't need the flush condition since self.flush_moves guarantees it
             return True

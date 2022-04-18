@@ -1,6 +1,6 @@
 import numpy as np
 
-from .game import GameEnv, Position
+from big2_rl.env.game import GameEnv, Position
 from big2_rl.env import move_detector as md
 
 deck = [i for i in range(0, 52)]
@@ -337,7 +337,7 @@ def get_ppo_action(starting_hand, infoset, number_of_actions, act_lookup_2, act_
         return available_actions
 
 
-def get_ppo_state(starting_hand, infoset, action_sequence, in_hand, obs_dim=412):
+def get_ppo_state(starting_hand, infoset, action_sequence, obs_dim=412):
     """
     Returns current state for PPO (a 412-dimensional feature) as nparray
 
@@ -354,9 +354,11 @@ def get_ppo_state(starting_hand, infoset, action_sequence, in_hand, obs_dim=412)
     # Total for (4): 13+4+8+4
     # Total size of state: (13+4+5)*13 + (13+8+6)*3 + 16 + (13+4+8+4) = 412
     """
-    # requires: starting_hand, obs_dim, infoset, action_sequence, in_hand, MoveDetector as md
+    # requires: starting_hand, obs_dim, infoset, action_sequence, MovesGener, MoveDetector as md
     state = np.zeros((obs_dim,), dtype=np.float32)
     feat_1_size = 13 + 4 + 5
+    from big2_rl.env.move_generator import MovesGener
+    mg = MovesGener(infoset.player_hand_cards)
     for index, card in enumerate(starting_hand):
         if card not in infoset.player_hand_cards:  # if card only in starting hand, it has already been played
             continue
@@ -366,7 +368,10 @@ def get_ppo_state(starting_hand, infoset, action_sequence, in_hand, obs_dim=412)
 
         # Note: If we call gen_type_4_straight, gen_type_5_flush here it blocks training (only kinda for 5, takes ~45s).
         # Suspect it may have to do with overhead for computing whether hand is valid straight or not (need to iterate
-        # through all straight possibilities). Instead we do it in PPOAgent class
+        # through all straight possibilities). As computation of straight and flush (esp. straight) is quite large,
+        # if want to reduce performance bottleneck with minimal effect on PPO Model prediction, can
+        # consider dropping these features
+        in_hand = [mg.gen_type_2_pair(), mg.gen_type_3_triple(), [], [], mg.gen_type_5_flush()]
         for in_hand_index, hand_type in enumerate(in_hand):
             found = 0
             for hand in hand_type:

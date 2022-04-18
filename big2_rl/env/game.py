@@ -1,7 +1,7 @@
 from copy import deepcopy
-from . import move_detector as md, move_selector as ms
-from .move_generator import MovesGener
-from big2_rl.env.settings import Settings
+from big2_rl.env import move_detector as md, move_selector as ms
+from big2_rl.env.move_generator import MovesGener
+import settings
 from enum import Enum, unique
 
 
@@ -117,8 +117,8 @@ class GameEnv(object):
             hand_size = len(self.info_sets[pos.name].player_hand_cards)
             if hand_size > 0:
                 penalty_multiplier = 1
-                for i in range(len(Settings.get_attrs()['penalty_threshold'])):
-                    if hand_size >= Settings.get_attrs()['penalty_threshold'][i]:
+                for i in range(len(settings.penalty_threshold)):
+                    if hand_size >= settings.penalty_threshold[i]:
                         penalty_multiplier += 1
                 # TODO more penalty multiplier logic needed here
                 self.player_reward_dict[pos.name] = -hand_size * penalty_multiplier
@@ -127,8 +127,9 @@ class GameEnv(object):
             elif hand_size == 0:
                 self.winner = pos.name
                 self.num_wins[pos.name] += 1
-        #if count > 2:  # TODO for debugging
-        #    print("PT: {}, {}" .format(Settings.get_attrs()['penalty_threshold'], Settings.__class__.__module__))
+        if count > 2:  # TODO for debugging
+            print("PT: {}, {}" .format(settings.penalty_threshold, 0))
+            x = 1
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count

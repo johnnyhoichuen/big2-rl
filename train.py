@@ -1,9 +1,10 @@
-import os
-
-from big2_rl.deep_mc import train, parser
-from big2_rl.env.parse_game_settings import parse_game_settings
 
 if __name__ == '__main__':
+    import os
+    from big2_rl.deep_mc.deep_mc import train
+    from big2_rl.deep_mc.settings_parser_arguments import parser
+    import settings
+
     # General Settings
     parser.add_argument('--xpid', default='big2rl',
                         help='Experiment id (default: big2rl)')
@@ -60,15 +61,16 @@ if __name__ == '__main__':
     flags = parser.parse_args()
 
     # (re-)initialise game settings for training
-    gs = parse_game_settings(flags)
+    import big2_rl.env.parse_game_settings
+    big2_rl.env.parse_game_settings.parse_settings(flags)
 
     # TODO remove
-    flags.num_actors = 5
+    flags.num_actors = 1
     flags.actor_device_cpu = True
     flags.training_device = "cpu"
     flags.opponent_agent = "ppo"
     print(flags.penalty_threshold)
-    print(gs.get_attrs()['penalty_threshold'])
+    print(settings.penalty_threshold)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)

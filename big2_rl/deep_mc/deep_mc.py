@@ -9,9 +9,9 @@ import torch
 from torch import multiprocessing as mp
 from torch import nn
 
-from .file_writer import FileWriter
+from big2_rl.deep_mc.file_writer import FileWriter
 from big2_rl.deep_mc.model import Big2Model
-from .utils import get_batch, log, create_buffers, act
+from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 
 # only save the mean episode return of one position (observed player)
 mean_episode_return_buf = deque(maxlen=100)

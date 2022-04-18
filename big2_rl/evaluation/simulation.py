@@ -3,9 +3,9 @@ import pickle
 
 from big2_rl.env.game import GameEnv, Position
 
-from .random_agent import RandomAgent
-from .dmc_agent import DMCAgent
-from .ppo_agent import PPOAgent
+from big2_rl.evaluation.random_agent import RandomAgent
+from big2_rl.evaluation.dmc_agent import DMCAgent
+from big2_rl.evaluation.ppo_agent import PPOAgent
 
 
 def load_models(model_path):

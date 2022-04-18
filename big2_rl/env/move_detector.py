@@ -1,4 +1,4 @@
-from .utils import *
+from big2_rl.env.utils import *
 import collections
 
 

@@ -8,8 +8,8 @@ from big2_rl.evaluation.ppo_agent import PPOAgent
 
 import torch
 
-from .env_utils import Environment
-from big2_rl.env import Env
+from big2_rl.deep_mc.env_utils import Environment
+from big2_rl.env.env import Env
 from big2_rl.env.env import _cards2array
 
 shandle = logging.StreamHandler()
