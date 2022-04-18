@@ -117,7 +117,6 @@ class MovesGener(object):
     # Each list consists of 5 elements corresponding to the 5 cards that make up a potential straight (but NOT SF)
     # if input hands are sorted in ascending order, the move's cards will be sorted in ascending order 3 < ... < 2
     def gen_type_4_straight(self):
-        # TODO: need to stress test this function's performance for a hand like 3334445566777 or 3344455667788
         # worst comes to worst manually generate a massive lookup dictionary and use that lmao
         result = list()
         # https://stackoverflow.com/questions/27150990/python-itertools-combinations-how-to-obtain-the-indices-of-the-combined-numbers
@@ -132,7 +131,6 @@ class MovesGener(object):
     # potential flush (but NOT SF)
     # if input hands are sorted in ascending order, the move's cards will be sorted in ascending order 3 < ... < 2
     def gen_type_5_flush(self):
-        # TODO: need to stress test this function's performance for a hand like A23456789TJQK all hearts
         self.flush_moves = []
         five_card_moves = list(itertools.combinations(self.cards_list, 5))  # generate all 5 card combos
         five_card_moves = [list(_) for _ in five_card_moves]

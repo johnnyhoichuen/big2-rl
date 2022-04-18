@@ -1,4 +1,4 @@
-# should be shared across all modules
+# TODO still buggy: should be shared across all modules
 
 # default initialisation
 penalise_quads = 1
@@ -22,4 +22,4 @@ straight_orders = [[_ for _ in range(0, 5)], [_ for _ in range(1, 6)], [_ for _ 
                          [_ for _ in range(7, 12)], [12, 0, 1, 2, 3], [11, 12, 0, 1, 2]]
 
 # 8-9 cards = double, 10-12 cards = triple, 13 cards = quadruple
-penalty_threshold = [8, 10, 13]
+penalty_threshold = [17, 18, 19]

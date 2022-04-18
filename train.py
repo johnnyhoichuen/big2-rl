@@ -65,12 +65,10 @@ if __name__ == '__main__':
     big2_rl.env.parse_game_settings.parse_settings(flags)
 
     # TODO remove
-    flags.num_actors = 1
+    flags.num_actors = 5
     flags.actor_device_cpu = True
     flags.training_device = "cpu"
     flags.opponent_agent = "ppo"
-    print(flags.penalty_threshold)
-    print(settings.penalty_threshold)
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)

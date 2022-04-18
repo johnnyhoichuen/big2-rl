@@ -127,9 +127,6 @@ class GameEnv(object):
             elif hand_size == 0:
                 self.winner = pos.name
                 self.num_wins[pos.name] += 1
-        if count > 2:  # TODO for debugging
-            print("PT: {}, {}" .format(settings.penalty_threshold, 0))
-            x = 1
 
         self.player_reward_dict[self.winner] = count
         self.num_scores[self.winner] += count
