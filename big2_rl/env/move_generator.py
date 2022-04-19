@@ -32,12 +32,13 @@ def is_valid_flush(input_combination):
 
 # determine if a list of length 5 (each element corresponding to a card value) is a valid SF
 def is_valid_straight_flush(input_combination):
-    for possible_straight in settings.straight_orders:
-        if len(set(map(lambda x: x//4, input_combination)).intersection(possible_straight)) == 5:
-            # technically don't need the flush condition since self.flush_moves guarantees it
-            return True
-        else:
-            return False
+    if len(set(map(lambda x: x % 4, input_combination))) == 1:  # MUST BE FLUSH FIRST
+        for possible_straight in settings.straight_orders:
+            if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
+                # technically don't need the flush condition since self.flush_moves guarantees it
+                return True
+        return False
+    return False
 
 
 class MovesGener(object):
@@ -55,8 +56,6 @@ class MovesGener(object):
         self.gen_type_2_pair()
         self.triple_cards_moves = []
         self.gen_type_3_triple()
-        self.flush_moves = []
-        self.gen_type_5_flush()
     
     # returns a list of lists. Each list consists of a single element corresponding to integer id of that card
     def gen_type_1_single(self):
@@ -131,13 +130,13 @@ class MovesGener(object):
     # potential flush (but NOT SF)
     # if input hands are sorted in ascending order, the move's cards will be sorted in ascending order 3 < ... < 2
     def gen_type_5_flush(self):
-        self.flush_moves = []
+        flush_moves = []
         five_card_moves = list(itertools.combinations(self.cards_list, 5))  # generate all 5 card combos
         five_card_moves = [list(_) for _ in five_card_moves]
         # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
         # here it generates all combinations of 5 cards that are valid flushes
-        self.flush_moves.extend(filter(is_valid_flush, five_card_moves))
-        return self.flush_moves
+        flush_moves.extend(filter(is_valid_flush, five_card_moves))
+        return flush_moves
 
     # returns a list of lists.
     # Each list consists of 5 elements in ascending order, first 2 to the pair, last 3 to the triple.
@@ -177,7 +176,11 @@ class MovesGener(object):
     # Each list consists of 5 elements, each corresponding to the integer id of the cards in a possible SF
     def gen_type_8_straightflush(self):
         result = list()
-        result.extend(filter(is_valid_straight_flush, self.flush_moves))
+        five_card_moves = list(itertools.combinations(self.cards_list, 5))  # generate all 5 card combos
+        five_card_moves = [list(_) for _ in five_card_moves]
+        # filter() takes an iterable and a function and returns all items in iterable that return true for the function.
+        # here it generates all combinations of 5 cards that are valid flushes
+        result.extend(filter(is_valid_straight_flush, five_card_moves))
         return result
 
     # generate all possible moves from given cards

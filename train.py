@@ -3,7 +3,6 @@ if __name__ == '__main__':
     import os
     from big2_rl.deep_mc.deep_mc import train
     from big2_rl.deep_mc.settings_parser_arguments import parser
-    import settings
 
     # General Settings
     parser.add_argument('--xpid', default='big2rl',

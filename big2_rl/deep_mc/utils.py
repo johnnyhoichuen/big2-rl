@@ -188,8 +188,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
                         _action_idx = int(agent_output['action'].cpu().detach().numpy())
                         action = obs['legal_actions'][_action_idx]
                         # update weights of actor models to most recent parameters only intermittently
-                        if games % 500 == 0 and os.path.exists(model_path):
-                            #print("games: {}" .format(games))  # TODO remove
+                        if games % 1000 == 0 and os.path.exists(model_path):
                             if torch.cuda.is_available():
                                 pretrained = torch.load(model_path, map_location='cuda:0')
                             else:

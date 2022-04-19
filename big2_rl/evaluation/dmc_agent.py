@@ -12,7 +12,6 @@ class DMCAgent:
         """
         self.model = Big2Model()
         model_state_dict = self.model.state_dict()
-        # TODO support both ckpt and tar loading
         if torch.cuda.is_available():
             pretrained_weights = torch.load(model_path, map_location='cuda:0')
         else:
