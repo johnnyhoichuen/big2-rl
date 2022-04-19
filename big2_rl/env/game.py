@@ -140,8 +140,12 @@ class GameEnv(object):
         """
         # self.players[pos] for each position pos is an Agent. each Agent defines the Agent.act() function which takes
         # an infoset (the information available to that player) as argument and decides on a legal action to make
-        action = self.players[self.acting_player_position].act(
-            self.game_infoset)
+
+        # PPOAgent has a different act() call compared to DMC and Random
+        if self.players[self.acting_player_position].__class__.__name__ == "PPOAgent":
+            action = self.players[self.acting_player_position].act(self.game_infoset, self.card_play_action_seq)
+        else:
+            action = self.players[self.acting_player_position].act(self.game_infoset)
         assert action in self.game_infoset.legal_actions
 
         # if move is not pass, update the acting player to be the current one

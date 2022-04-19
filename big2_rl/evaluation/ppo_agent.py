@@ -118,15 +118,13 @@ class PPOAgent:
                 self.inverse_indices_2[i_2] = np.array([c_1, c_2])
                 i_2 += 1
 
-    def act(self, game_env):
+    def act(self, infoset, action_sequence):
         """
-        Given an Env object available to this agent, takes the current PPO state and action and computes forward
-        pass of model to get the suggested legal action.
+        Given Env.infoset and Env.GameEnv.card_play_action_seq available to this agent,
+        computes the current PPO state and action and computes forward pass of model to get the suggested legal action.
         However, if only one action is legal (pass), then take that action.
         """
 
-        infoset = game_env.infoset
-        action_sequence = game_env._env.card_play_action_seq
         # num singles, num singles+pairs, num singles+pairs+triples, num all except pass
         num_of_actions = [13, 46, 407, 1694]
 
@@ -166,4 +164,5 @@ class PPOAgent:
         move = []
         for i in v:
             move.append(self.starting_hand[i])
+        assert move in infoset.legal_actions
         return move

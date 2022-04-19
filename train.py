@@ -68,7 +68,10 @@ if __name__ == '__main__':
     flags.num_actors = 5
     flags.actor_device_cpu = True
     flags.training_device = "cpu"
-    flags.opponent_agent = "ppo"
+    if flags.opponent_agent == "ppo":
+        flags.xpid = "big2rl"
+    elif flags.opponent_agent == "prior":
+        flags.xpid = "prior-test"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)
