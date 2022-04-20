@@ -1,5 +1,4 @@
 from big2_rl.deep_mc.settings_parser_arguments import parser
-import big2_rl.env.parse_game_settings
 from big2_rl.evaluation.play import play_against
 
 if __name__ == '__main__':
@@ -11,9 +10,6 @@ if __name__ == '__main__':
     parser.add_argument('--west', type=str, default='random')
 
     args = parser.parse_args()
-
-    # (re-)initialise game settings
-    #big2_rl.env.parse_game_settings.parse_settings(args)
 
     """
     from big2_rl.env import move_detector as md, move_selector as ms
@@ -79,5 +75,8 @@ if __name__ == '__main__':
     args.east = 'big2rl_checkpoints/prior-test/prior-model.tar'
     args.north = 'big2rl_checkpoints/prior-test/prior-model.tar'
     args.west = 'big2rl_checkpoints/prior-test/prior-model.tar'
+    #args.east = 'ppo'
+    #args.north = 'ppo'
+    #args.west = 'ppo'
 
-    #play_against(args)
+    play_against(args)

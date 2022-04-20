@@ -31,6 +31,9 @@ def play_against(args):
         # initialise game environment with that deal
         env.card_play_init(card_play_data)
         print("Hand dealt!")
+        for p in Position:  # set starting hand for PPO Agents
+            if env.players[p.name].__class__.__name__ == 'PPOAgent':
+                env.players[p.name].set_starting_hand(card_play_data[p.name])
         while env.game_over is not True:
             if env.acting_player_position == 'SOUTH':
                 is_valid_move = False
@@ -50,8 +53,11 @@ def play_against(args):
                     move = input("Enter the move to make:\n")  # eg '3d,3h' for the pair (3 of diamonds, 3 of hearts)
                     try:
                         if move == 'rec':  # have agent recommend a move for us
-                            rec_move = oracle.act(env.game_infoset)
-                            print("Recommended moves: {}" .format(hand_to_string(rec_move)))
+                            if oracle.__class__.__name__ == 'PPOAgent':
+                                rec_move = oracle.act(env.game_infoset, env.card_play_action_seq)
+                            else:
+                                rec_move = oracle.act(env.game_infoset)
+                            print("Recommended move: {}" .format(hand_to_string(rec_move)))
                             h_move = 'not a move lol'
                         else:  # convert move
                             h_move = string_to_hand(move)
