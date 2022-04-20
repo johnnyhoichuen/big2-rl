@@ -18,7 +18,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # (re-)initialise game settings for evaluation
-    gs = parse_settings(args)
+    #gs = parse_settings(args)
 
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device

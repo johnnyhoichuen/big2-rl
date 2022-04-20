@@ -1,5 +1,6 @@
 # return a list of all moves that can beat an opponent
 import settings
+import collections
 
 
 # `moves` is a list of a move of some type (e.g. pair) where each element is a move represented by a list of integer ids
@@ -8,7 +9,7 @@ def compare_max(moves, opponent_move):
     new_moves = list()
     for move in moves:
         # since each move is given in ascending order,
-        # only compare the highest card for singles, pairs, triples, full houses and quads
+        # only compare the highest card for singles, pairs, triples
         if move[len(move)-1] > opponent_move[len(move)-1]:
             new_moves.append(move)
     return new_moves
@@ -81,11 +82,31 @@ def filter_type_5_flush(moves, opponent_move):
 
 
 def filter_type_6_fullhouse(moves, opponent_move):
-    return compare_max(moves, opponent_move)
+    opp_move_ranks = list(map(lambda x: x // 4, opponent_move))
+    opp_move_ranks_dict = collections.Counter(opp_move_ranks)
+    opp_max_key = max(opp_move_ranks_dict, key=opp_move_ranks_dict.get)  # get rank of triple in opponent move
+    new_moves = list()
+    for move in moves:
+        move_ranks = list(map(lambda x: x // 4, move))
+        move_ranks_dict = collections.Counter(move_ranks)
+        max_key = max(move_ranks_dict, key=move_ranks_dict.get)  # get rank of triple in an available move
+        if opp_max_key < max_key:
+            new_moves.append(move)
+    return new_moves
 
 
 def filter_type_7_quads(moves, opponent_move):
-    return compare_max(moves, opponent_move)
+    opp_move_ranks = list(map(lambda x: x // 4, opponent_move))
+    opp_move_ranks_dict = collections.Counter(opp_move_ranks)
+    opp_max_key = max(opp_move_ranks_dict, key=opp_move_ranks_dict.get)  # get rank of quad in opponent move
+    new_moves = list()
+    for move in moves:
+        move_ranks = list(map(lambda x: x // 4, move))
+        move_ranks_dict = collections.Counter(move_ranks)
+        max_key = max(move_ranks_dict, key=move_ranks_dict.get)  # get rank of quad in an available move
+        if opp_max_key < max_key:
+            new_moves.append(move)
+    return new_moves
 
 
 def filter_type_8_straightflush(moves, opponent_move):

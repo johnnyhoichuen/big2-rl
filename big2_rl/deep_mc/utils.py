@@ -33,6 +33,8 @@ def hand_to_string(x):
     hand = []
     ranks = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
     suits = ['d', 'c', 'h', 's']
+    if x == []:
+        return "PASS"
     for card in x:
         hand.append(ranks[card // 4] + suits[card % 4])
     hand_str = ','.join(hand)
@@ -43,6 +45,8 @@ def string_to_hand(x):
     # example: '3d,3h,8h,9h,Th,Jh,Qh,Kc,Ks,As,Ad,2c'
     ranks = ['3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A', '2']
     suits = ['d', 'c', 'h', 's']
+    if x == '':  # pass
+        return []
     x_list = x.split(",")
     hand = []
     for i in x_list:

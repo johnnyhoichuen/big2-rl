@@ -60,8 +60,8 @@ if __name__ == '__main__':
     flags = parser.parse_args()
 
     # (re-)initialise game settings for training
-    import big2_rl.env.parse_game_settings
-    big2_rl.env.parse_game_settings.parse_settings(flags)
+    #import big2_rl.env.parse_game_settings
+    #big2_rl.env.parse_game_settings.parse_settings(flags)
 
     # TODO remove
     flags.num_actors = 5

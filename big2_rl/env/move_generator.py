@@ -35,7 +35,6 @@ def is_valid_straight_flush(input_combination):
     if len(set(map(lambda x: x % 4, input_combination))) == 1:  # MUST BE FLUSH FIRST
         for possible_straight in settings.straight_orders:
             if len(set(map(lambda x: x//4, input_combination)).intersection(set(possible_straight))) == 5:
-                # technically don't need the flush condition since self.flush_moves guarantees it
                 return True
         return False
     return False

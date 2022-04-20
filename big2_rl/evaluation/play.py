@@ -49,23 +49,21 @@ def play_against(args):
                     print("Your hand: {}".format(hand_to_string(hand)))
                     move = input("Enter the move to make:\n")  # eg '3d,3h' for the pair (3 of diamonds, 3 of hearts)
                     try:
-                        if move == '':  # pass
-                            h_move = []
-                        elif move == 'rec':  # have agent recommend a move for us
+                        if move == 'rec':  # have agent recommend a move for us
                             rec_move = oracle.act(env.game_infoset)
                             print("Recommended moves: {}" .format(hand_to_string(rec_move)))
                             h_move = 'not a move lol'
                         else:  # convert move
                             h_move = string_to_hand(move)
                     except ValueError:  # can't convert to move
-                        pass
+                        print("Invalid move.")
 
                     if h_move in env.game_infoset.legal_actions:
                         is_valid_move = True
                         players['SOUTH'].action = h_move
                     else:
                         if move != 'rec':
-                            print("Invalid move.")
+                            print("Can't beat last move.")
             else:
                 pass
             env.step()  # invoke Agent.act()

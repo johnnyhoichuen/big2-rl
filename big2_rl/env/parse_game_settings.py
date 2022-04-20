@@ -2,10 +2,8 @@ import settings
 
 
 def parse_settings(args):
-    """
-    Create GameSettings instance (if not defined) and updates singleton instance's attribute values
-    (penalties, rewards, flush & straight orders)
-    """
+    # Create GameSettings instance (if not defined) and updates singleton instance's attribute values
+    # (penalties, rewards, flush & straight orders)
 
     straight_order = args.straight_orders
     if straight_order == "T2A":  # default
