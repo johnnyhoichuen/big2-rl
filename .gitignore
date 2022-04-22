@@ -4,8 +4,11 @@
 **/._.DS_Store
 .idea
 __pycache__/
+*.pyc
 big2rl_checkpoints/
+big2rl_checkpoints/big2rl/out.log
 
 # slurm report
 **/slurm-*.out
 slurm-*.out
+slurm_report/big2rl.yml
