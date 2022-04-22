@@ -54,10 +54,20 @@ def play_against(args):
                     try:
                         if move == 'rec':  # have agent recommend a move for us
                             if oracle.__class__.__name__ == 'PPOAgent':
+                                # TODO: PPOAgent only supports top-1 move for now
                                 rec_move = oracle.act(env.game_infoset, env.card_play_action_seq)
+                                print("Recommended move: {}" .format(hand_to_string(rec_move)))
                             else:
-                                rec_move = oracle.act(env.game_infoset)
-                            print("Recommended move: {}" .format(hand_to_string(rec_move)))
+                                rec_moves = oracle.recommend(env.game_infoset)
+                                rec_moves_str = '| '
+                                for action, value in rec_moves:
+                                    if value == 'N/A':
+                                        rec_moves_str += '{} - value {} | '.format(
+                                            hand_to_string(env.game_infoset.legal_actions[action]), value)
+                                    else:
+                                        rec_moves_str += '{} - value {:.4f} | ' .format(
+                                            hand_to_string(env.game_infoset.legal_actions[action]), value)
+                                print("Recommended moves: {}" .format(rec_moves_str))
                             h_move = 'not a move lol'
                         else:  # convert move
                             h_move = string_to_hand(move)
