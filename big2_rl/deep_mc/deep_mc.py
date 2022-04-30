@@ -20,6 +20,7 @@ mean_episode_return_buf = deque(maxlen=100)
 # selected activation function
 activation = 'relu'
 
+
 def compute_loss(logits, targets):
     loss = ((logits.squeeze(-1) - targets) ** 2).mean()
     return loss
@@ -56,6 +57,8 @@ def learn(actor_models,
             'mean_episode_return_actor': mean_ep_ret,
             'loss': loss.item(),
         }
+
+        torch.autograd.set_detect_anomaly(True)
 
         # backpropagation and gradient clipping
         optimizer.zero_grad()
@@ -166,8 +169,6 @@ def train(flags):
         )
         learner_model.load_state_dict(checkpoint_states["model_state_dict"])
         optimizer.load_state_dict(checkpoint_states["optimizer_state_dict"])
-
-
 
         for device in device_iterator:  # loads actor models
             models[device].load_state_dict(learner_model.state_dict())

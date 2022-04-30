@@ -162,8 +162,11 @@ class ResidualBlock(nn.Module):
 
 
 def activation_func(activation):
+    # bug: https://github.com/NVlabs/FUNIT/issues/23#issuecomment-528418501
+    # This error can be resolved by setting inplace=False in nn.ReLU and nn.LeakyReLU in blocks.py.
+
     return  nn.ModuleDict([
-        ['relu', nn.ReLU(inplace=True)],
+        ['relu', nn.ReLU(inplace=False)],
         ['leaky_relu', nn.LeakyReLU(negative_slope=0.01, inplace=True)],
         ['selu', nn.SELU(inplace=True)],
         ['none', nn.Identity()]
