@@ -4,7 +4,8 @@ import traceback
 from big2_rl.env.game import Position
 from big2_rl.evaluation.random_agent import RandomAgent
 from big2_rl.evaluation.ppo_agent import PPOAgent
-from big2_rl.deep_mc.model import Big2Model
+# from big2_rl.deep_mc.model import Big2Model
+from big2_rl.deep_mc.model import Big2ModelResNet
 from copy import deepcopy
 
 import torch
@@ -151,7 +152,7 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         random_agent = RandomAgent()
         ppo_agent = PPOAgent()
 
-        prior_model = Big2Model(device)
+        prior_model = Big2ModelResNet(device)
         psd = prior_model.state_dict()
         msd = deepcopy(model.state_dict())
         psd.update(msd)
@@ -263,11 +264,3 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         traceback.print_exc()
         print()
         raise e
-
-def activation_func(activation):
-    return  nn.ModuleDict([
-        ['relu', nn.ReLU(inplace=True)],
-        ['leaky_relu', nn.LeakyReLU(negative_slope=0.01, inplace=True)],
-        ['selu', nn.SELU(inplace=True)],
-        ['none', nn.Identity()]
-    ])[activation]

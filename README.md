@@ -4,7 +4,7 @@ Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia
 
 Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
 
-In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa. 
+In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa.
 
 ## Big Two Challenges
 
@@ -26,6 +26,17 @@ pip3 install -r requirements.txt
 ```
 
 ## Training [TODO]
+
+### Using SLURM
+Use the following commands to schedule jobs in your computer cluster
+sbcppo (='sbatch slurm_cpu_vs_ppo.sh')
+sbcpri (='sbatch slurm_cpu_vs_prior.sh')
+sbcran (='sbatch slurm_cpu_vs_rand.sh')
+# sbg (='sbatch slurm_gpu.sh')
+sq (='squeue')
+lo (='./latest_slurm_out.sh')
+
+###
 To use GPU for training, run
 ```
 python3 train.py

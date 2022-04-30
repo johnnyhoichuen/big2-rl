@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from torch import nn
-from utils import activation_func
 
 # actual model for one of the 4 players
 class Big2Model(nn.Module):
@@ -145,3 +144,12 @@ class ResidualBlock(nn.Module):
     @property
     def should_apply_shortcut(self):
         return self.in_features != self.out_features
+
+
+def activation_func(activation):
+    return  nn.ModuleDict([
+        ['relu', nn.ReLU(inplace=True)],
+        ['leaky_relu', nn.LeakyReLU(negative_slope=0.01, inplace=True)],
+        ['selu', nn.SELU(inplace=True)],
+        ['none', nn.Identity()]
+    ])[activation]

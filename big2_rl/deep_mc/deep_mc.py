@@ -10,7 +10,8 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from big2_rl.deep_mc.file_writer import FileWriter
-from big2_rl.deep_mc.model import Big2Model, Big2ModelResNet
+# from big2_rl.deep_mc.model import Big2Model
+from big2_rl.deep_mc.model import Big2ModelResNet
 from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 
 # only save the mean episode return of one position (observed player)
@@ -139,7 +140,7 @@ def train(flags):
 
     # Create learner model for training on the ONE training_device
     # learner_model = Big2Model(flags.training_device)
-    learner_model = Big2Model(flags.training_device, activation=activation)
+    learner_model = Big2ModelResNet(flags.training_device, activation=activation)
 
     # Create globally shared optimizer for all positions
     optimizer = torch.optim.RMSprop(
@@ -172,7 +173,7 @@ def train(flags):
             models[device].load_state_dict(learner_model.state_dict())
         stats = checkpoint_states["stats"]
         frames = checkpoint_states["frames"]
-        log.info(f"Resuming preempted job, current stats:\n{stats}")
+        # log.info(f"Resuming preempted job, current stats:\n{stats}")
 
     # Starting actor processes on each actor device
     for device in device_iterator:
