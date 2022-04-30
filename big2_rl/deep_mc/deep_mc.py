@@ -10,12 +10,14 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from big2_rl.deep_mc.file_writer import FileWriter
-from big2_rl.deep_mc.model import Big2Model
+from big2_rl.deep_mc.model import Big2Model, Big2ModelResNet
 from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 
 # only save the mean episode return of one position (observed player)
 mean_episode_return_buf = deque(maxlen=100)
 
+# selected activation function
+activation = 'relu'
 
 def compute_loss(logits, targets):
     loss = ((logits.squeeze(-1) - targets) ** 2).mean()
@@ -113,7 +115,8 @@ def train(flags):
     models = {}
     # create model on each actor device and moves it to shared memory
     for device in device_iterator:
-        model = Big2Model(device)
+        # model = Big2Model(device)
+        model = Big2ModelResNet(device, activation=activation)
         model.share_memory()
         model.eval()  # actors shouldn't be training (ie receiving weight updates)
         models[device] = model
@@ -135,7 +138,8 @@ def train(flags):
         full_queue[device] = _full_queue
 
     # Create learner model for training on the ONE training_device
-    learner_model = Big2Model(flags.training_device)
+    # learner_model = Big2Model(flags.training_device)
+    learner_model = Big2Model(flags.training_device, activation=activation)
 
     # Create globally shared optimizer for all positions
     optimizer = torch.optim.RMSprop(

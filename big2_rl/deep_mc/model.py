@@ -76,22 +76,17 @@ class Big2ModelResNet(nn.Module):
         activation func: relu, leaky relu, selu
         """
 
-        self.dense1 = ResidualBlock(559 + 128,512, 'relu')
-        self.dense2 = ResidualBlock(512,512, 'relu')
-        self.dense3 = ResidualBlock(512,512, 'relu')
-        self.dense4 = ResidualBlock(512,512, 'relu')
-        self.dense5 = ResidualBlock(512,512, 'relu')
+        self.dense1 = ResidualBlock(559 + 128,512, activation)
+        self.dense2 = ResidualBlock(512,512, activation)
+        self.dense3 = ResidualBlock(512,512, activation)
+        self.dense4 = ResidualBlock(512,512, activation)
+        self.dense5 = ResidualBlock(512,512, activation)
         self.dense6 = ResidualBlock(512,1)
-
-
 
     def forward(self, z, x, return_value=False, flags=None):
         lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
         lstm_out = lstm_out[:, -1, :]
         x = torch.cat([lstm_out, x], dim=-1)
-
-        residual = x
-
 
         x = self.dense1(x)
         # x = torch.relu(x)
@@ -115,11 +110,6 @@ class Big2ModelResNet(nn.Module):
                 action = torch.argmax(x, dim=0)[0]
             # returns the action to take
             return dict(action=action)
-
-    def resBlock(in, dense, ):
-        x = torch.relu(x)
-
-
 
     def should_apply_shortcut(self):
         # TODO: implement
