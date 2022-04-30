@@ -1,15 +1,6 @@
 from big2_rl.env.utils import *
 import collections
-
-
-# check if move is a continuous sequence
-def is_continuous_seq(move):
-    i = 0
-    while i < len(move) - 1:
-        if move[i+1] - move[i] != 1:
-            return False
-        i += 1
-    return True
+from big2_rl.env.move_generator import *
 
 
 # return the type of the move as a dict {'type':  ENUM}
@@ -54,24 +45,13 @@ def get_move_type(move):
                 return {'type': TYPE_9_WRONG}
             
         elif len(move_ranks_dict) == 5:  # straight, flush or SF
-            
-            # check flush
-            move_suits = list(map(lambda x: x % 4, move))  # eg [Ah Qh Th 6h 5h] = [46 38 30 14 10] = [2 2 2 2 2]
-            move_suits_dict = collections.Counter(move_suits)  # gets number of each suit
-            
-            # check straight
-            is_straight = is_continuous_seq(move_ranks)
-
-            if len(move_suits_dict) == 1:
-                if is_straight:
-                    return {'type': TYPE_8_STRAIGHTFLUSH}
-                else:
-                    return {'type': TYPE_5_FLUSH}
-            else:    
-                if is_straight:
-                    return {'type': TYPE_4_STRAIGHT}
-                else:
-                    return {'type': TYPE_9_WRONG}
+            if is_valid_straight_flush(move):
+                return {'type': TYPE_8_STRAIGHTFLUSH}
+            if is_valid_straight(move):
+                return {'type': TYPE_4_STRAIGHT}
+            if is_valid_flush(move):
+                return {'type': TYPE_5_FLUSH}
+            return {'type': TYPE_9_WRONG}
         
         else:
             return {'type': TYPE_9_WRONG}
