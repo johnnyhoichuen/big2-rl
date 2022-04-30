@@ -2,7 +2,7 @@
 
 #SBATCH --job-name big2rl
 #SBATCH --ntasks=1
-#SBATCH --time=00:30:00
+#SBATCH --time=24:00:00
 
 # available partition
 # 1. cpu-share
