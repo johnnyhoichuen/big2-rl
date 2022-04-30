@@ -11,7 +11,7 @@ if __name__ == '__main__':
                         help='Time interval (in minutes) at which to save the model')
     parser.add_argument('--opponent_agent', default='random', type=str,
                         help='Type of opponent agent to be placed in other 3 positions \
-                        which model will be tested again. Values = {prior, ppo}')
+                        which model will be tested again. Values = {prior, ppo, random}')
 
     # Training settings
     parser.add_argument('--actor_device_cpu', action='store_true',
