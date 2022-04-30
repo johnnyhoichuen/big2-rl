@@ -4,13 +4,9 @@ Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia
 
 Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
 
-In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa. 
+In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa.
 
-## Big Two Challenges
-
-TODO
-
-In this work, we explore a variety of algorithms and structures and evaluate their respective performances. Please read [our paper](TODO) for more details.
+In this work, we explore a variety of model structures and evaluate their respective performances. Please read [our paper](TODO) for more details.
 
 ## Installation
 The training code is designed for GPUs. Thus, you need to first install CUDA if you want to train models. You may refer to [this guide](https://docs.nvidia.com/cuda/index.html#installation-guides). For evaluation, CUDA is optional and you can use CPU for evaluation.
@@ -25,7 +21,7 @@ cd big2-rl
 pip3 install -r requirements.txt
 ```
 
-## Training [TODO]
+## Training
 To use GPU for training, run
 ```
 python3 train.py
@@ -54,7 +50,7 @@ python3 train.py --actor_device_cpu
 ```
 For more customized configuration of training, see the following optional arguments: [TODO add the rest]
 ```
---xpid XPID           Experiment id (default: douzero)
+--xpid XPID           Experiment id (default: big2rl)
 --save_interval SAVE_INTERVAL
                       Time interval (in minutes) at which to save the model
 --actor_device_cpu    Use CPU as actor device
@@ -91,12 +87,11 @@ For more customized configuration of training, see the following optional argume
 --epsilon EPSILON     RMSProp epsilon
 ```
 
-## Evaluation [TODO]
-The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available at [Google Drive](https://drive.google.com/drive/folders/1NmM2cXnI5CIWHaLJeoDZMiwt6lOTV_UB?usp=sharing) or [百度网盘](https://pan.baidu.com/s/18g-JUKad6D8rmBONXUDuOQ), 提取码: 4624. Put pretrained weights in `baselines/`. The performance is evaluated through self-play. We have provided pretrained models and some heuristics as baselines:
+## Evaluation
+The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available in `baselines/`. The performance is evaluated through self-play.
 *   [random](big2_rl/evaluation/random_agent.py): agents that play randomly (uniformly)
-*   SL (`baselines/sl/`): the pre-trained deep agents on human data
-*   DouZero-ADP (`baselines/douzero_ADP/`): the pretrained DouZero agents with Average Difference Points (ADP) as objective
-*   DouZero-WP (`baselines/douzero_WP/`): the pretrained DouZero agents with Winning Percentage (WP) as objective
+*   [ppo](big2_rl/evaluation/ppo_agent.py): agents based on Charlesworth's PPO model
+*   [prior](big2_rl/evaluation/dmc_agent.py): evaluate against DMC agents trained for some number of iterations
 
 ### Step 1: Generate evaluation data
 ```
@@ -106,15 +101,15 @@ Some important hyperparameters are as follows.
 *   `--output`: where the pickled data will be saved
 *   `--num_games`: how many random games will be generated, default 10000
 
-### Step 2: Self-Play [TODO add the settings]
+### Step 2: Self-Play
 ```
 python3 evaluate.py
 ```
 Some important hyperparameters are as follows.
-* `--south`: which agent will play as the South player, which can be random, or the path of the pre-trained DMC model
-* `--east`: which agent will play as the East player, which can be random, or the path of the pre-trained DMC model
-* `--north`: which agent will play as the North player, which can be random, or the path of the pre-trained DMC model
-* `--west`: which agent will play as the West player, which can be random, or the path of the pre-trained DMC model
+* `--south`: which agent will play as the South player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
+* `--east`: which agent will play as the East player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
+* `--north`: which agent will play as the North player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
+* `--west`: which agent will play as the West player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
 * `--eval_data`: the pickle file that contains evaluation data
 * `--num_workers`: how many subprocesses will be used to run evaluation data
 * `--gpu_device`: which GPU to use. It will use CPU by default
@@ -127,7 +122,17 @@ The following command evaluates performance of DMC Agent trained for 200 frames 
 ```
 python3 evaluate.py --south baselines/weights_200.ckpt --east baselines/weights_200.ckpt --west baselines/weights_10000.ckpt --north baselines/weights_4000.ckpt
 ```
-By default, our model will be saved in `big2rl_checkpoints/big2rl` every 20 minutes.
+By default, our model will be saved in `big2rl_checkpoints/big2rl` every 10 minutes.
+
+## Play
+You can also play against our pre-trained models.
+```
+python3 play-big2.py
+```
+Some important hyperparameters are as follows.
+* `--east`: path of the model for the East player to use. Can be 'ppo' or 'random'
+* `--north`: path of the model for the North player to use. Can be 'ppo' or 'random'
+* `--west`: path of the model for the West player to use. Can be 'ppo' or 'random'
 
 ## Core Team
 *   [Jasper Chow](https://github.com/jchow-ust)
