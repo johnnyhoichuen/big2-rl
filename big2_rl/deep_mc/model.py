@@ -136,14 +136,13 @@ class ResidualBlock(nn.Module):
         # self.blocks = nn.Identity()
         self.blocks = nn.Sequential(
             nn.Linear(in_features, out_features),
-            activation_func(activation)
             )
 
         self.activate = activation_func(activation)
         # self.shortcut = nn.Identity() # no diff
 
     def forward(self, x):
-        residual = x
+        residual = x.clone()
         # print(f'residual shape: {x.shape}')
 
         # if self.should_apply_shortcut: residual = self.shortcut(x)
@@ -162,11 +161,12 @@ class ResidualBlock(nn.Module):
 
 
 def activation_func(activation):
-    # bug: https://github.com/NVlabs/FUNIT/issues/23#issuecomment-528418501
+    # RuntimeError: one of the variables needed for gradient computation has been modified by an inplace operation: [torch.FloatTensor [3200, 512]], which is output 0 of ReluBackward0, is at version 1; expected version 0 instead. Hint: the backtrace further above shows the operation that failed to compute its gradient. The variable in question was changed in there or anywhere later. Good luck!
     # This error can be resolved by setting inplace=False in nn.ReLU and nn.LeakyReLU in blocks.py.
+    # https://discuss.pytorch.org/t/encounter-the-runtimeerror-one-of-the-variables-needed-for-gradient-computation-has-been-modified-by-an-inplace-operation/836/5
 
     return  nn.ModuleDict([
-        ['relu', nn.ReLU(inplace=False)],
+        ['relu', nn.ReLU(inplace=True)],
         ['leaky_relu', nn.LeakyReLU(negative_slope=0.01, inplace=True)],
         ['selu', nn.SELU(inplace=True)],
         ['none', nn.Identity()]
