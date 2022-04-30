@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # flags.training_device = "cpu"
 
     if flags.training_device == "cpu":
-        flage.num_actors = 1
+        flags.num_actors = 1
 
     if flags.opponent_agent == "ppo":
         flags.xpid = "big2rl"

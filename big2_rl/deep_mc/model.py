@@ -63,6 +63,10 @@ class Big2ModelResNet(nn.Module):
         self.lstm = nn.LSTM(208, 128, batch_first=True)
         # input to dense1 layer is (x_batch) with size (NL,559) # batch_first=true
         # should be 559 not 507 (compare with douzero and value in dmc/utils.py)
+
+        """
+        original layers
+        """
         # self.dense1 = nn.Linear(559 + 128, 512)
         # self.dense2 = nn.Linear(512, 512)
         # self.dense3 = nn.Linear(512, 512)
@@ -71,32 +75,44 @@ class Big2ModelResNet(nn.Module):
         # self.dense6 = nn.Linear(512, 1)
 
         """
-        test
+        residual blocks
         activation func: relu, leaky relu, selu
         """
 
-        self.dense1 = ResidualBlock(559 + 128,512, activation)
+        self.dense1 = nn.Linear(559 + 128, 512)
         self.dense2 = ResidualBlock(512,512, activation)
         self.dense3 = ResidualBlock(512,512, activation)
         self.dense4 = ResidualBlock(512,512, activation)
         self.dense5 = ResidualBlock(512,512, activation)
-        self.dense6 = ResidualBlock(512,1)
+        self.dense6 = nn.Linear(512, 1)
+        # self.dense6 = ResidualBlock(512,1, activation='none') # bug: RuntimeError: output with shape [14, 1] doesn't match the broadcast shape [14, 512]
 
     def forward(self, z, x, return_value=False, flags=None):
         lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
         lstm_out = lstm_out[:, -1, :]
         x = torch.cat([lstm_out, x], dim=-1)
 
+        # original layers
+        # x = self.dense1(x)
+        # x = torch.relu(x)
+        # x = self.dense2(x)
+        # x = torch.relu(x)
+        # x = self.dense3(x)
+        # x = torch.relu(x)
+        # x = self.dense4(x)
+        # x = torch.relu(x)
+        # x = self.dense5(x)
+        # x = torch.relu(x)
+        # x = self.dense6(x)
+
+        """
+        residual blocks
+        """
         x = self.dense1(x)
-        # x = torch.relu(x)
         x = self.dense2(x)
-        # x = torch.relu(x)
         x = self.dense3(x)
-        # x = torch.relu(x)
         x = self.dense4(x)
-        # x = torch.relu(x)
         x = self.dense5(x)
-        # x = torch.relu(x)
         x = self.dense6(x)
 
         if return_value:  # this is used during dmc/learn()
@@ -110,11 +126,6 @@ class Big2ModelResNet(nn.Module):
             # returns the action to take
             return dict(action=action)
 
-    def should_apply_shortcut(self):
-        # TODO: implement
-        # return self.in_
-        pass
-
 
 # basic res block
 class ResidualBlock(nn.Module):
@@ -124,26 +135,30 @@ class ResidualBlock(nn.Module):
 
         # self.blocks = nn.Identity()
         self.blocks = nn.Sequential(
-            # conv(in_channels, out_channels, *args, **kwargs),
-            # nn.BatchNorm2d(out_channels)
-            nn.Linear(512, 512),
+            nn.Linear(in_features, out_features),
             activation_func(activation)
             )
 
         self.activate = activation_func(activation)
-        self.shortcut = nn.Identity()
+        # self.shortcut = nn.Identity() # no diff
 
     def forward(self, x):
         residual = x
-        if self.should_apply_shortcut: residual = self.shortcut(x)
+        # print(f'residual shape: {x.shape}')
+
+        # if self.should_apply_shortcut: residual = self.shortcut(x)
+
         x = self.blocks(x)
+        # print(f'blocks(x) shape: {x.shape}')
+
         x += residual
         x = self.activate(x)
+
         return x
 
-    @property
-    def should_apply_shortcut(self):
-        return self.in_features != self.out_features
+    # @property
+    # def should_apply_shortcut(self):
+    #     return <your logic here>
 
 
 def activation_func(activation):
