@@ -21,7 +21,8 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
 
     # TODO remove
-    args.south = 'big2rl_checkpoints/prior-test/_weights_2451200.ckpt'  # should be .ckpt, can't be the tar file
+    # args.south = 'big2rl_checkpoints/prior-test/_weights_2451200.ckpt'  # should be .ckpt, can't be the tar file
+    args.south = 'big2rl_checkpoints/big2rl/_weights_118400.ckpt'
     #args.south = 'big2rl_checkpoints/prior-test/model.tar'
     #args.south = 'big2rl_checkpoints/big2rl/model.tar'
     #args.south = 'ppo'

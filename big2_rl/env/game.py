@@ -117,9 +117,12 @@ class GameEnv(object):
             hand_size = len(self.info_sets[pos.name].player_hand_cards)
             if hand_size > 0:
                 penalty_multiplier = 1
+
+                # TODO fix bug for penalty_threshold
                 for i in range(len(settings.penalty_threshold)):
                     if hand_size >= settings.penalty_threshold[i]:
                         penalty_multiplier += 1
+
                 # TODO more penalty multiplier logic needed here
                 self.player_reward_dict[pos.name] = -hand_size * penalty_multiplier
                 self.num_scores[pos.name] -= hand_size * penalty_multiplier

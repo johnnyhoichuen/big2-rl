@@ -43,8 +43,10 @@ def filter_type_4_straight(moves, opponent_move):
                 move_straight_index = s_i
             if len(opp_move_ranks.intersection(straight_as_set)) == 5:
                 opp_straight_index = s_i
-                
+
         if move_straight_index == -1 or opp_straight_index == -1:
+            print(move)
+            print(opponent_move)
             raise Exception("Someone doesn't have a straight")
         
         if move_straight_index > opp_straight_index:  # new move has higher straight rank

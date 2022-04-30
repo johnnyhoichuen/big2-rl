@@ -21,7 +21,22 @@ cd big2-rl
 pip3 install -r requirements.txt
 ```
 
+<<<<<<< HEAD
 ## Training
+=======
+## Training [TODO]
+
+### Using SLURM
+Use the following commands to schedule jobs in your computer cluster
+sbcppo (='sbatch slurm_cpu_vs_ppo.sh')
+sbcpri (='sbatch slurm_cpu_vs_prior.sh')
+sbcran (='sbatch slurm_cpu_vs_rand.sh')
+# sbg (='sbatch slurm_gpu.sh')
+sq (='squeue')
+lo (='./latest_slurm_out.sh')
+
+###
+>>>>>>> 1109246cb027c9ffd72665652c93fcc7e4a7d5a9
 To use GPU for training, run
 ```
 python3 train.py
