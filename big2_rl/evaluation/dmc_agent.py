@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from big2_rl.env.env import get_obs
-from big2_rl.deep_mc.model import Big2Model
+from big2_rl.deep_mc.model import Big2ModelResNet
 
 
 class DMCAgent:
@@ -10,7 +10,7 @@ class DMCAgent:
         """
         Loads model's pretrained weights from a given model path.
         """
-        self.model = Big2Model()
+        self.model = Big2ModelResNet()
         model_state_dict = self.model.state_dict()
         if torch.cuda.is_available():
             pretrained_weights = torch.load(model_path, map_location='cuda:0')

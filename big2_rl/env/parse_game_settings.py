@@ -1,5 +1,6 @@
-import settings
+# this file is not used by others
 
+import settings
 
 def parse_settings(args):
     # Create GameSettings instance (if not defined) and updates singleton instance's attribute values

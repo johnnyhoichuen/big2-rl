@@ -10,11 +10,15 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from big2_rl.deep_mc.file_writer import FileWriter
-from big2_rl.deep_mc.model import Big2Model
+# from big2_rl.deep_mc.model import Big2Model
+from big2_rl.deep_mc.model import Big2ModelResNet
 from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 
 # only save the mean episode return of one position (observed player)
 mean_episode_return_buf = deque(maxlen=100)
+
+# selected activation function
+activation = 'relu'
 
 
 def compute_loss(logits, targets):
@@ -53,6 +57,8 @@ def learn(actor_models,
             'mean_episode_return_actor': mean_ep_ret,
             'loss': loss.item(),
         }
+
+        torch.autograd.set_detect_anomaly(True)
 
         # backpropagation and gradient clipping
         optimizer.zero_grad()
@@ -96,9 +102,12 @@ def train(flags):
     checkpointpath = os.path.expandvars(
         os.path.expanduser('%s/%s/%s' % (flags.savedir, flags.xpid, 'model.tar')))
 
+    print('ckpt path: ', checkpointpath)
+
     T = flags.unroll_length
     B = flags.batch_size
 
+    # TODO
     # Initialize actor models
     if flags.actor_device_cpu:
         device_iterator = ['cpu']
@@ -110,7 +119,8 @@ def train(flags):
     models = {}
     # create model on each actor device and moves it to shared memory
     for device in device_iterator:
-        model = Big2Model(device)
+        # model = Big2Model(device)
+        model = Big2ModelResNet(device, activation=activation)
         model.share_memory()
         model.eval()  # actors shouldn't be training (ie receiving weight updates)
         models[device] = model
@@ -132,7 +142,8 @@ def train(flags):
         full_queue[device] = _full_queue
 
     # Create learner model for training on the ONE training_device
-    learner_model = Big2Model(flags.training_device)
+    # learner_model = Big2Model(flags.training_device)
+    learner_model = Big2ModelResNet(flags.training_device, activation=activation)
 
     # Create globally shared optimizer for all positions
     optimizer = torch.optim.RMSprop(
@@ -158,11 +169,12 @@ def train(flags):
         )
         learner_model.load_state_dict(checkpoint_states["model_state_dict"])
         optimizer.load_state_dict(checkpoint_states["optimizer_state_dict"])
+
         for device in device_iterator:  # loads actor models
             models[device].load_state_dict(learner_model.state_dict())
         stats = checkpoint_states["stats"]
         frames = checkpoint_states["frames"]
-        log.info(f"Resuming preempted job, current stats:\n{stats}")
+        # log.info(f"Resuming preempted job, current stats:\n{stats}")
 
     # Starting actor processes on each actor device
     for device in device_iterator:
