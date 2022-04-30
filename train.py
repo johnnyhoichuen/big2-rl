@@ -11,7 +11,7 @@ if __name__ == '__main__':
                         help='Time interval (in minutes) at which to save the model')
     parser.add_argument('--opponent_agent', default='random', type=str,
                         help='Type of opponent agent to be placed in other 3 positions \
-                        which model will be tested again. Values = {prior, ppo}')
+                        which model will be tested again. Values = {prior, ppo, random}')
 
     # Training settings
     parser.add_argument('--actor_device_cpu', action='store_true',
@@ -60,13 +60,19 @@ if __name__ == '__main__':
     flags = parser.parse_args()
 
     # TODO remove
-    flags.num_actors = 5
-    flags.actor_device_cpu = True
-    flags.training_device = "cpu"
+    # flags.num_actors = 5
+    # flags.actor_device_cpu = True
+    # flags.training_device = "cpu"
+
+    if flags.training_device == "cpu":
+        flage.num_actors = 1
+
     if flags.opponent_agent == "ppo":
         flags.xpid = "big2rl"
     elif flags.opponent_agent == "prior":
         flags.xpid = "prior-test"
+    elif flags.oppoonent_agent == "random":
+        flags.xpid = "random"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
     train(flags)

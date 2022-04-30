@@ -14,7 +14,7 @@ flush_orders = 0
 
 # a list of the rankings of the valid straights
 # default: 34567 < 45678 < ... < TJQKA < 23456 < A2345
-# JQKA2 is not a valid straight
+# JQKA2 (8,9,10,11,12) is not a valid straight
 # default is T2A
 straight_orders = [[_ for _ in range(0, 5)], [_ for _ in range(1, 6)], [_ for _ in range(2, 7)],
                          [_ for _ in range(3, 8)], [_ for _ in range(4, 9)],

@@ -96,9 +96,12 @@ def train(flags):
     checkpointpath = os.path.expandvars(
         os.path.expanduser('%s/%s/%s' % (flags.savedir, flags.xpid, 'model.tar')))
 
+    print('ckpt path: ', checkpointpath)
+
     T = flags.unroll_length
     B = flags.batch_size
 
+    # TODO
     # Initialize actor models
     if flags.actor_device_cpu:
         device_iterator = ['cpu']
@@ -158,6 +161,9 @@ def train(flags):
         )
         learner_model.load_state_dict(checkpoint_states["model_state_dict"])
         optimizer.load_state_dict(checkpoint_states["optimizer_state_dict"])
+
+
+
         for device in device_iterator:  # loads actor models
             models[device].load_state_dict(learner_model.state_dict())
         stats = checkpoint_states["stats"]
