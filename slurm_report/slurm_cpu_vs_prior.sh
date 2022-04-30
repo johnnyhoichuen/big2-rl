@@ -41,7 +41,7 @@ echo -e "\n\n\n Training"
 cd ..
 
 # competing with prior models
-srun python train.py --actor_device_cpu --training_device cpu -pt 14 14 14 --opponent_agent prior
+srun python train.py --actor_device_cpu --training_device cpu --opponent_agent prior
 
 echo -e "\n\n\n Generating eval data"
 srun python generate_eval_data.py

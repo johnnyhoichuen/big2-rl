@@ -39,10 +39,10 @@ echo -e "\n\n\nTraining"
 cd ..
 # if running on local machine, use:
 # when playing against Charlesworth PPO, use -pt 14 16 18 (values must be distinct!) since the model was trained on ruleset of no increased penalty
-# python3 train.py --actor_device_cpu --training_device cpu --opponent_agent ppo -pt 14 16 18
+# python3 train.py --actor_device_cpu --training_device cpu --opponent_agent ppo
 # python3 generate_eval_data.py
 # python3 evaluate.py
-srun python train.py --gpu_devices 0,1 --num_actor_devices 1 --num_actors 10 --training_device 1 -pt 14 16 18 --opponent_agent ppo
+srun python train.py --gpu_devices 0,1 --num_actor_devices 1 --num_actors 10 --training_device 1 --opponent_agent ppo
 
 echo -e "\n\n\nGenerating eval data"
 srun python generate_eval_data.py
