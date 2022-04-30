@@ -1,7 +1,6 @@
 import os
 from big2_rl.evaluation.simulation import evaluate
 from big2_rl.deep_mc.settings_parser_arguments import parser
-from big2_rl.env.parse_game_settings import parse_settings
 
 if __name__ == '__main__':
     # define which agents to place in which positions.

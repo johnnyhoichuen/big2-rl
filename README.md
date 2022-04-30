@@ -21,9 +21,6 @@ cd big2-rl
 pip3 install -r requirements.txt
 ```
 
-<<<<<<< HEAD
-## Training
-=======
 ## Training [TODO]
 
 ### Using SLURM
@@ -36,7 +33,6 @@ sq (='squeue')
 lo (='./latest_slurm_out.sh')
 
 ###
->>>>>>> 1109246cb027c9ffd72665652c93fcc7e4a7d5a9
 To use GPU for training, run
 ```
 python3 train.py
@@ -67,39 +63,42 @@ For more customized configuration of training, see the following optional argume
 ```
 --xpid XPID           Experiment id (default: big2rl)
 --save_interval SAVE_INTERVAL
-                      Time interval (in minutes) at which to save the model
+                    Time interval (in minutes) at which to save the model
+--opponent_agent OPPONENT_AGENT
+                    Type of opponent agent to be placed in other 3 positions which model will be tested again. Values = {prior, ppo,
+                    random}
 --actor_device_cpu    Use CPU as actor device
 --gpu_devices GPU_DEVICES
-                      Which GPUs to be used for training
+                    Which GPUs to be used for training
 --num_actor_devices NUM_ACTOR_DEVICES
-                      The number of devices used for simulation
+                    The number of devices used for simulation
 --num_actors NUM_ACTORS
-                      The number of actors for each simulation device
+                    The number of actors for each simulation device
 --training_device TRAINING_DEVICE
-                      The index of the GPU used for training models. `cpu`
-                	  means using cpu
+                    The index of the GPU used for training models. `cpu` means using cpu
 --load_model          Load an existing model
 --disable_checkpoint  Disable saving checkpoint
 --savedir SAVEDIR     Root dir where experiment data will be saved
 --total_frames TOTAL_FRAMES
-                      Total environment frames to train for
+                    Total environment frames to train for
 --exp_epsilon EXP_EPSILON
-                      The probability for exploration
+                    The probability for exploration
 --batch_size BATCH_SIZE
-                      Learner batch size
+                    Learner batch size
 --unroll_length UNROLL_LENGTH
-                      The unroll length (time dimension)
+                    The unroll length (time dimension)
 --num_buffers NUM_BUFFERS
-                      Number of shared-memory buffers for a given actor device
+                    Number of shared-memory buffers for a given actor device
 --num_threads NUM_THREADS
-                      Number learner threads
+                    Number learner threads
 --max_grad_norm MAX_GRAD_NORM
-                      Max norm of gradients
+                    Max norm of gradients
 --learning_rate LEARNING_RATE
-                      Learning rate
+                    Learning rate
 --alpha ALPHA         RMSProp smoothing constant
 --momentum MOMENTUM   RMSProp momentum
 --epsilon EPSILON     RMSProp epsilon
+
 ```
 
 ## Evaluation
@@ -148,6 +147,9 @@ Some important hyperparameters are as follows.
 * `--east`: path of the model for the East player to use. Can be 'ppo' or 'random'
 * `--north`: path of the model for the North player to use. Can be 'ppo' or 'random'
 * `--west`: path of the model for the West player to use. Can be 'ppo' or 'random'
+
+## Settings
+You can also modify `settings.py` before training, evaluation or play (change order of straights, flushes, and penalties.) For details, please refer to [here](big2_rl/env/parse_game_settings.py).
 
 ## Core Team
 *   [Jasper Chow](https://github.com/jchow-ust)
