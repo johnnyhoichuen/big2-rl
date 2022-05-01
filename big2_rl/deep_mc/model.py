@@ -85,7 +85,7 @@ class Big2ModelResNet(nn.Module):
         self.dense4 = ResidualBlock(512,512, activation)
         self.dense5 = ResidualBlock(512,512, activation)
         self.dense6 = nn.Linear(512, 1)
-        # self.dense6 = ResidualBlock(512,1, activation='none') # bug: RuntimeError: output with shape [14, 1] doesn't match the broadcast shape [14, 512]
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, z, x, return_value=False, flags=None):
         lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
