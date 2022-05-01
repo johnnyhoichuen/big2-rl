@@ -83,6 +83,8 @@ def evaluate(south, east, north, west, eval_data, num_workers):
             num_wins_by_position[p.name] += result[0][p.name]
             ev_by_position[p.name] += result[1][p.name]
 
+    print('total games (play at all 4 positions in the same deck): ', total_games)
+
     for p in Position:
         print("{}" .format(p.name))
         print("Games won percentage: {}" .format(num_wins_by_position[p.name]/total_games))

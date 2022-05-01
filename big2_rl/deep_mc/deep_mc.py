@@ -18,6 +18,7 @@ from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 mean_episode_return_buf = deque(maxlen=100)
 
 # selected activation function
+# options 'relu', leaky_relu, 'selu'
 activation = 'relu'
 
 
