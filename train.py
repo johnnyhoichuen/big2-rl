@@ -71,7 +71,7 @@ if __name__ == '__main__':
         flags.xpid = "big2rl"
     elif flags.opponent_agent == "prior":
         flags.xpid = "prior-test"
-    elif flags.oppoonent_agent == "random":
+    elif flags.opponent_agent == "random":
         flags.xpid = "random"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = flags.gpu_devices
