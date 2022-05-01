@@ -41,7 +41,7 @@ echo -e "\n\n\n Training"
 cd ..
 
 # competing with random agents
-srun python train.py --actor_device_cpu --training_device cpu --opponent_agent random
+srun python train.py --actor_device_cpu --training_device cpu --opponent_agent random --total_frames 1800000
 
 echo -e "\n\n\n Generating eval data"
 srun python generate_eval_data.py

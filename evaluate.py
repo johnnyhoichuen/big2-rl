@@ -6,10 +6,10 @@ from big2_rl.env.parse_game_settings import parse_settings
 if __name__ == '__main__':
     # define which agents to place in which positions.
     # If we want we can replace south with random, others with DMC trained for instance, and evaluate performance
-    parser.add_argument('--south', type=str, default='random')
-    parser.add_argument('--east', type=str, default='random')
-    parser.add_argument('--north', type=str, default='random')
-    parser.add_argument('--west', type=str, default='random')
+    # parser.add_argument('--south', type=str, default='random')
+    # parser.add_argument('--east', type=str, default='random')
+    # parser.add_argument('--north', type=str, default='random')
+    # parser.add_argument('--west', type=str, default='random')
 
     parser.add_argument('--train_opponent', type=str, help='opponent during training')
     parser.add_argument('--eval_opponent', type=str, default='random', help='opponent during evaluation')
@@ -30,13 +30,12 @@ if __name__ == '__main__':
     agent_path = ''
     opponent = ''
     if args.train_opponent == 'ppo':
-        agent_path = f'big2rl_checkpoints/big2rl/_weights_{args.frames_trained}.ckpt' # edit the number here
+        agent_path = f'big2rl_checkpoints/big2rl/_weights_{args.frames_trained}.ckpt'  # edit the number here
         # opponent = 'big2rl_checkpoints/prior-test/model.tar'
     elif args.train_opponent == 'prior':
-        agent_path = f'big2rl_checkpoints/prior-test/_weights_{args.frames_trained}.ckpt' # edit the number here
+        agent_path = f'big2rl_checkpoints/prior-test/_weights_{args.frames_trained}.ckpt'  # edit the number here
     elif args.train_opponent == 'random':
-        agent_path = f'big2rl_checkpoints/random/_weights_{args.frames_trained}.ckpt' # edit the number here
-        opponent = 'big2rl_checkpoints/prior-test/model.tar'
+        agent_path = f'big2rl_checkpoints/random/_weights_{args.frames_trained}.ckpt'  # edit the number here
     else:
         raise ValueError('Training opponent not specified')
 
@@ -49,27 +48,14 @@ if __name__ == '__main__':
         # opponent = 'big2rl_checkpoints/prior-test/model.tar'
     elif args.eval_opponent == 'random':
         opponent = 'random'
+    else:
+        raise ValueError('Evaluation opponent not specified')
 
-
-    args.south = agent_path
+    args.south = agent_path  # always the path of a .ckpt file
     args.east = opponent
     args.north = opponent
     args.west = opponent
 
     print(f'Agent using {agent_path}, opponent using ')
-
-
-    #args.south = 'big2rl_checkpoints/prior-test/model.tar'
-    #args.south = 'big2rl_checkpoints/big2rl/model.tar'
-    #args.south = 'ppo'
-    #args.east = 'big2rl_checkpoints/big2rl/model.tar'
-    #args.north = 'big2rl_checkpoints/big2rl/model.tar'
-    #args.west = 'big2rl_checkpoints/big2rl/model.tar'
-    #args.east = 'ppo'
-    #args.north = 'ppo'
-    #args.west = 'ppo'
-    # if we make 4 PPOs play against each other, since policy is deterministic, so position will have EV 0
-
-    print(args.eval_data)
 
     evaluate(args.south, args.east, args.north, args.west, args.eval_data, args.num_workers)
