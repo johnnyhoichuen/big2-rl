@@ -57,6 +57,8 @@ if __name__ == '__main__':
     parser.add_argument('--epsilon', default=1e-5, type=float,
                         help='RMSProp epsilon')
 
+    parser.add_argument('--model_type', default='', help='Model architecture to use for DMC')
+
     flags = parser.parse_args()
 
     # TODO remove

@@ -2,15 +2,21 @@ import torch
 import numpy as np
 
 from big2_rl.env.env import get_obs
-from big2_rl.deep_mc.model import Big2ModelResNet
+from big2_rl.deep_mc.model import Big2ModelResNet, Big2Model
 
 
 class DMCAgent:
-    def __init__(self, model_path):
+    def __init__(self, model_path, model_type):
         """
         Loads model's pretrained weights from a given model path.
         """
-        self.model = Big2ModelResNet()
+        if model_type == 'residual':
+            self.model = Big2ModelResNet()
+        elif model_type == 'conv':
+            self.model = Big2Model()  # TODO
+        else:
+            self.model = Big2Model()
+
         model_state_dict = self.model.state_dict()
         if torch.cuda.is_available():
             pretrained_weights = torch.load(model_path, map_location='cuda:0')

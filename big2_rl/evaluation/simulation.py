@@ -8,7 +8,7 @@ from big2_rl.evaluation.dmc_agent import DMCAgent
 from big2_rl.evaluation.ppo_agent import PPOAgent
 
 
-def load_models(model_path):
+def load_models(model_path, model_type):
     """
     Loads a specified agent type (random, PPO or deep MC)
     """
@@ -19,15 +19,15 @@ def load_models(model_path):
         elif model_path[p.name] == 'ppo':
             players[p.name] = PPOAgent()
         else:
-            players[p.name] = DMCAgent(model_path[p.name])
+            players[p.name] = DMCAgent(model_path[p.name], model_type[p.name])
     return players
 
 
-def mp_simulate(card_play_data_list, card_play_model_path_dict, queue):
+def mp_simulate(card_play_data_list, card_play_model_path_dict, queue, model_type):
     """
     Handles GameEnv definition, initialisation and reset for processing evaluation data for a given worker
     """
-    players = load_models(card_play_model_path_dict)
+    players = load_models(card_play_model_path_dict, model_type)
     env = GameEnv(players)
     # play each game by creating a GameEnv
     for idx, card_play_data in enumerate(card_play_data_list):
@@ -44,7 +44,7 @@ def mp_simulate(card_play_data_list, card_play_model_path_dict, queue):
     queue.put((env.num_wins, env.num_scores))
 
 
-def evaluate(south, east, north, west, eval_data, num_workers):
+def evaluate(south, east, north, west, eval_data, num_workers, model_type):
     """
     Uses multiprocessing on 'num_workers' many workers to evaluate a given set of evaluation data
     (pickled deals) by metrics like EV, win %, etc.
@@ -71,7 +71,7 @@ def evaluate(south, east, north, west, eval_data, num_workers):
     q = ctx.SimpleQueue()
     eval_processes = []
     for card_play_data in card_play_data_list_per_worker:
-        process = ctx.Process(target=mp_simulate, args=(card_play_data, card_play_model_path_dict, q))
+        process = ctx.Process(target=mp_simulate, args=(card_play_data, card_play_model_path_dict, q, model_type))
         process.start()
         eval_processes.append(process)
     for process in eval_processes:

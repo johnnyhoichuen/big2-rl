@@ -4,8 +4,7 @@ import traceback
 from big2_rl.env.game import Position
 from big2_rl.evaluation.random_agent import RandomAgent
 from big2_rl.evaluation.ppo_agent import PPOAgent
-# from big2_rl.deep_mc.model import Big2Model
-from big2_rl.deep_mc.model import Big2ModelResNet
+from big2_rl.deep_mc.model import Big2Model, Big2ModelResNet
 from copy import deepcopy
 
 import torch
@@ -152,7 +151,12 @@ def act(i, device, free_queue, full_queue, model, buffers, flags):
         random_agent = RandomAgent()
         ppo_agent = PPOAgent()
 
-        prior_model = Big2ModelResNet(device)
+        if flags.model_type == 'residual':
+            prior_model = Big2ModelResNet(device, activation='relu')
+        elif flags.model_type == 'conv':
+            prior_model = Big2Model(device)  # TODO
+        else:
+            prior_model = Big2Model(device)
         psd = prior_model.state_dict()
         msd = deepcopy(model.state_dict())
         psd.update(msd)
