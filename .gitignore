@@ -5,6 +5,8 @@
 .idea
 __pycache__/
 *.pyc
+
+# checkpoints
 big2rl_checkpoints/
 big2rl_checkpoints/big2rl/out.log
 
@@ -12,5 +14,8 @@ big2rl_checkpoints/big2rl/out.log
 **/slurm-*.out
 slurm-*.out
 slurm_report/big2rl.yml
+
+# eval data
+eval_data.pkl
 
 main.py
