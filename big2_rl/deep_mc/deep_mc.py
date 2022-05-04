@@ -10,7 +10,7 @@ from torch import multiprocessing as mp
 from torch import nn
 
 from big2_rl.deep_mc.file_writer import FileWriter
-from big2_rl.deep_mc.model import Big2Model, Big2ModelResNet
+from big2_rl.deep_mc.model import Big2Model, Big2ModelResNet, Big2ModelConv
 from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 
 # only save the mean episode return of one position (observed player)
@@ -118,7 +118,7 @@ def train(flags):
         if flags.model_type == 'residual':
             model = Big2ModelResNet(device, activation='relu')
         elif flags.model_type == 'conv':
-            model = Big2Model(device)  # TODO
+            model = Big2ModelConv(device)
         else:
             model = Big2Model(device)
         model.share_memory()
@@ -143,7 +143,7 @@ def train(flags):
 
     # Create learner model for training on the ONE training_device
     if flags.model_type == 'conv':  # TODO
-        learner_model = Big2Model(flags.training_device)
+        learner_model = Big2ModelConv(flags.training_device)
     elif flags.model_type == 'residual':
         learner_model = Big2ModelResNet(flags.training_device, activation='relu')
     else:  # standard

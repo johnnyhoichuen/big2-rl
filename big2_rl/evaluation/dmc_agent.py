@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from big2_rl.env.env import get_obs
-from big2_rl.deep_mc.model import Big2ModelResNet, Big2Model
+from big2_rl.deep_mc.model import Big2ModelResNet, Big2Model, Big2ModelConv
 
 
 class DMCAgent:
@@ -13,7 +13,7 @@ class DMCAgent:
         if model_type == 'residual':
             self.model = Big2ModelResNet()
         elif model_type == 'conv':
-            self.model = Big2Model()  # TODO
+            self.model = Big2ModelConv()
         else:
             self.model = Big2Model()
 
