@@ -16,6 +16,10 @@ from big2_rl.deep_mc.utils import get_batch, log, create_buffers, act
 # only save the mean episode return of one position (observed player)
 mean_episode_return_buf = deque(maxlen=100)
 
+# selected activation function
+# options 'relu', leaky_relu, 'selu'
+activation = 'relu'
+
 
 def compute_loss(logits, targets):
     loss = ((logits.squeeze(-1) - targets) ** 2).mean()

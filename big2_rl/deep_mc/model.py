@@ -65,7 +65,7 @@ class Big2ModelResNet(nn.Module):
 
         """
         residual blocks
-        activation func: relu, leaky relu, selu
+        activation func of choice: relu, leaky relu, selu
         """
         self.dense1 = nn.Linear(559 + 128, 512)
         self.dense2 = ResidualBlock(512,512, activation)
@@ -73,6 +73,7 @@ class Big2ModelResNet(nn.Module):
         self.dense4 = ResidualBlock(512,512, activation)
         self.dense5 = ResidualBlock(512,512, activation)
         self.dense6 = nn.Linear(512, 1)
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, z, x, return_value=False, flags=None):
         lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
