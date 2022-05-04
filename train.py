@@ -65,6 +65,7 @@ if __name__ == '__main__':
     # flags.num_actors = 5
     # flags.actor_device_cpu = True
     # flags.training_device = "cpu"
+    flags.model_type = 'residual'
 
     if flags.training_device == "cpu":
         flags.num_actors = 1

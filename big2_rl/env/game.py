@@ -274,13 +274,7 @@ class GameEnv(object):
 
         elif rival_move_type == md.TYPE_4_STRAIGHT:
             all_moves = mg.gen_type_4_straight()
-
-            # moves = ms.filter_type_4_straight(all_moves, rival_move)
-            try:
-                moves = ms.filter_type_4_straight(all_moves, rival_move)
-            except ValueError:
-                moves = []
-
+            moves = ms.filter_type_4_straight(all_moves, rival_move)
             moves += mg.gen_type_5_flush() + mg.gen_type_6_fullhouse() + mg.gen_type_7_quads() + mg. \
                 gen_type_8_straightflush()
 
@@ -303,7 +297,6 @@ class GameEnv(object):
             all_moves = mg.gen_type_8_straightflush()
             moves = ms.filter_type_8_straightflush(all_moves, rival_move)
 
-        # TODO: combine with rival_move_type == md.pass?
         if len(rival_move) != 0:  # if rival move is not pass
             moves = moves + [[]]
 
