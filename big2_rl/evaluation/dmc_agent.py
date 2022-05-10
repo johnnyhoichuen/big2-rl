@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from big2_rl.env.env import get_obs
-from big2_rl.deep_mc.model import Big2ModelResNet, Big2Model, Big2ModelConv
+from big2_rl.deep_mc.model import Big2ModelResNet, Big2Model, Big2ModelConv, Big2ModelConvRes
 
 
 class DMCAgent:
@@ -14,6 +14,8 @@ class DMCAgent:
             self.model = Big2ModelResNet()
         elif model_type == 'conv':
             self.model = Big2ModelConv()
+        elif model_type == 'convres':
+            self.model = Big2ModelConvRes()
         else:
             self.model = Big2Model()
 

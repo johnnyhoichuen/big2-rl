@@ -73,7 +73,6 @@ class Big2ModelResNet(nn.Module):
         self.dense4 = ResidualBlock(512,512, activation)
         self.dense5 = ResidualBlock(512,512, activation)
         self.dense6 = nn.Linear(512, 1)
-        self.dropout = nn.Dropout(0.2)
 
     def forward(self, z, x, return_value=False, flags=None):
         lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
@@ -142,34 +141,25 @@ class Big2ModelConv(nn.Module):
             device = 'cuda:' + str(device)
             self.to(torch.device(device))
 
-        # LSTM handles prior actions (z_batch) with size (NL,4,208)
         self.conv_z_1 = torch.nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=(1, 57)),  # B * 4 * 208
+            nn.Conv2d(1, 64, kernel_size=(1, 52)),
             nn.ReLU(inplace=True),
             nn.BatchNorm2d(64),
         )
-        # Squeeze(-1) B * 64 * 16
         self.conv_z_2 = torch.nn.Sequential(
-            nn.Conv1d(64, 128, kernel_size=(5,), padding=2),  # 128 * 16
+            nn.Conv1d(64, 128, kernel_size=(5,), padding=2),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(128),
         )
         self.conv_z_3 = torch.nn.Sequential(
-            nn.Conv1d(128, 256, kernel_size=(3,), padding=1),  # 256 * 8
+            nn.Conv1d(128, 256, kernel_size=(3,), padding=1),
             nn.ReLU(inplace=True),
             nn.BatchNorm1d(256),
-
-        )
-        self.conv_z_4 = torch.nn.Sequential(
-            nn.Conv1d(256, 512, kernel_size=(3,), padding=1),  # 512 * 4
-            nn.ReLU(inplace=True),
-            nn.BatchNorm1d(512),
         )
 
-
-        # input to dense1 layer is (x_batch) with size (NL,559) # batch_first=true
+        # input to dense1 layer is (x_batch) with size (B,559) # batch_first=true
         # should be 559 not 507 (compare with douzero and value in dmc/utils.py)
-        self.dense1 = nn.Linear(559 + 128, 512)
+        self.dense1 = nn.Linear(559 + 512, 512)
         self.dense2 = nn.Linear(512, 512)
         self.dense3 = nn.Linear(512, 512)
         self.dense4 = nn.Linear(512, 512)
@@ -177,9 +167,25 @@ class Big2ModelConv(nn.Module):
         self.dense6 = nn.Linear(512, 1)
 
     def forward(self, z, x, return_value=False, flags=None):
-        lstm_out, (h_n, _) = self.lstm(z)  # we don't care about hidden state h_n and cell state c_n at time n
-        lstm_out = lstm_out[:, -1, :]
-        x = torch.cat([lstm_out, x], dim=-1)
+        # B * 4 * 208
+        z = z.reshape(-1, 16, 52)
+        z = z.unsqueeze(1)
+        # B * 1 * 16 * 52
+        z = self.conv_z_1(z)
+        z = z.squeeze(-1)
+        z = torch.max_pool1d(z, 2)
+        # B * 64 * 8
+        z = self.conv_z_2(z)
+        # B * 128 * 8
+        z = torch.max_pool1d(z, 2)
+        # B * 128 * 4
+        z = self.conv_z_3(z)
+        z = torch.max_pool1d(z, 2)
+        # B * 256 * 2
+        z = z.flatten(1, 2)
+        # B * 512
+
+        x = torch.cat([z, x], dim=-1)
         x = self.dense1(x)
         x = torch.relu(x)
         x = self.dense2(x)
@@ -190,6 +196,76 @@ class Big2ModelConv(nn.Module):
         x = torch.relu(x)
         x = self.dense5(x)
         x = torch.relu(x)
+        x = self.dense6(x)
+        if return_value:  # this is used during dmc/learn()
+            return dict(values=x)
+        else:
+            # epsilon-greedy policy with 'flags.exp_epsilon' as parameter
+            if flags is not None and flags.exp_epsilon > 0 and np.random.rand() < flags.exp_epsilon:
+                action = torch.randint(x.shape[0], (1,))[0]
+            else:
+                action = torch.argmax(x, dim=0)[0]
+            # returns the action to take
+            return dict(action=action)
+
+
+class Big2ModelConvRes(nn.Module):
+    def __init__(self, device=0, activation='relu'):
+        super().__init__()
+        if not device == "cpu":  # move device to right parameter
+            device = 'cuda:' + str(device)
+            self.to(torch.device(device))
+
+        self.conv_z_1 = torch.nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=(1, 52)),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(64),
+        )
+        self.conv_z_2 = torch.nn.Sequential(
+            nn.Conv1d(64, 128, kernel_size=(5,), padding=2),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(128),
+        )
+        self.conv_z_3 = torch.nn.Sequential(
+            nn.Conv1d(128, 256, kernel_size=(3,), padding=1),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(256),
+        )
+
+        # input to dense1 layer is (x_batch) with size (B,559) # batch_first=true
+        # should be 559 not 507 (compare with douzero and value in dmc/utils.py)
+        self.dense1 = nn.Linear(559 + 512, 512)
+        self.dense2 = ResidualBlock(512, 512, activation)
+        self.dense3 = ResidualBlock(512, 512, activation)
+        self.dense4 = ResidualBlock(512, 512, activation)
+        self.dense5 = ResidualBlock(512, 512, activation)
+        self.dense6 = nn.Linear(512, 1)
+
+    def forward(self, z, x, return_value=False, flags=None):
+        # B * 4 * 208
+        z = z.reshape(-1, 16, 52)
+        z = z.unsqueeze(1)
+        # B * 1 * 16 * 52
+        z = self.conv_z_1(z)
+        z = z.squeeze(-1)
+        z = torch.max_pool1d(z, 2)
+        # B * 64 * 8
+        z = self.conv_z_2(z)
+        # B * 128 * 8
+        z = torch.max_pool1d(z, 2)
+        # B * 128 * 4
+        z = self.conv_z_3(z)
+        z = torch.max_pool1d(z, 2)
+        # B * 256 * 2
+        z = z.flatten(1, 2)
+        # B * 512
+
+        x = torch.cat([z, x], dim=-1)
+        x = self.dense1(x)
+        x = self.dense2(x)
+        x = self.dense3(x)
+        x = self.dense4(x)
+        x = self.dense5(x)
         x = self.dense6(x)
         if return_value:  # this is used during dmc/learn()
             return dict(values=x)
