@@ -70,6 +70,8 @@ class FileWriter:
         self.xpid = xpid
         self._tick = 0
 
+        print(f'model_type: {xp_args["model_type"]}')
+
         # metadata gathering
         if xp_args is None:
             xp_args = {}
@@ -110,10 +112,10 @@ class FileWriter:
         #     self._logger.info('Symlinked log directory: %s', symlink)
 
         self.paths = dict(
-            msg='{base}/out.log'.format(base=self.basepath),
-            logs='{base}/logs.csv'.format(base=self.basepath),
-            fields='{base}/fields.csv'.format(base=self.basepath),
-            meta='{base}/meta.json'.format(base=self.basepath),
+            msg='{base}/out-{model}.log'.format(base=self.basepath, model=xp_args["model_type"]),
+            logs='{base}/logs-{model}.csv'.format(base=self.basepath, model=xp_args["model_type"]),
+            fields='{base}/fields-{model}.csv'.format(base=self.basepath, model=xp_args["model_type"]),
+            meta='{base}/meta-{model}.json'.format(base=self.basepath, model=xp_args["model_type"]),
         )
 
         self._logger.info('Saving arguments to %s', self.paths['meta'])

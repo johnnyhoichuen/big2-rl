@@ -253,8 +253,8 @@ def train(flags):
         }, checkpointpath)
 
         # Save the weights of the learner model for evaluation purpose
-        model_weights_dir = os.path.expandvars(os.path.expanduser('%s/%s/%s' % (
-            flags.savedir, flags.xpid, '_weights_' + str(frames) + '.ckpt')))
+        model_weights_dir = os.path.expandvars(os.path.expanduser('%s/%s/%s%s' % (
+            flags.savedir, flags.xpid, flags.model_type, '_weights_' + str(frames) + '.ckpt')))
         torch.save(learner_model.state_dict(), model_weights_dir)
 
     # handles timing and sleeps when flags.save_interval minutes pass, checkpoints the current state dict
@@ -266,7 +266,7 @@ def train(flags):
             start_time = timer()
             time.sleep(5)
 
-            if timer() - last_checkpoint_time > flags.save_interval * 60:
+            if timer() - last_checkpoint_time > 10:# flags.save_interval * 60:
                 checkpoint(frames)
                 last_checkpoint_time = timer()
 
