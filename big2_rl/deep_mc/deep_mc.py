@@ -100,7 +100,7 @@ def train(flags):
     )
     # initialise checkpoint path to where model weights will be periodically saved
     checkpointpath = os.path.expandvars(
-        os.path.expanduser('%s/%s/%s' % (flags.savedir, flags.xpid, 'model.tar')))
+        os.path.expanduser('%s/%s/%s%s' % (flags.savedir, flags.xpid, flags.model_type, '-model.tar')))
 
     print('ckpt path: ', checkpointpath)
 
@@ -127,6 +127,7 @@ def train(flags):
             model = Big2ModelConvRes(device, activation='relu')
         else:
             model = Big2Model(device)
+        print(f'model_type = {flags.model_type}')
         model.share_memory()
         model.eval()  # actors shouldn't be training (ie receiving weight updates)
         models[device] = model
