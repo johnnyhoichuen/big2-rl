@@ -65,13 +65,13 @@ if __name__ == '__main__':
     # flags.num_actors = 5
     # flags.actor_device_cpu = True
     # flags.training_device = "cpu"
-    flags.model_type = 'residual'
+    # flags.model_type = 'residual'
 
     if flags.training_device == "cpu":
         flags.num_actors = 1
 
     if flags.opponent_agent == "ppo":
-        flags.xpid = "big2rl"
+        flags.xpid = "ppo"
     elif flags.opponent_agent == "prior":
         flags.xpid = "prior-test"
     elif flags.opponent_agent == "random":
