@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name big2rl
+#SBATCH --job-name big2-prior
 #SBATCH --ntasks=1
 #SBATCH --time=24:00:00
 
@@ -41,7 +41,7 @@ echo -e "\n\n\n Training"
 cd ..
 
 # competing with prior models
-srun python train.py --actor_device_cpu --training_device cpu --opponent_agent prior --total_frames 1800000
+srun python train.py --model_type convres --actor_device_cpu --training_device cpu --opponent_agent prior --total_frames 2000000
 
 echo -e "\n\n\n Generating eval data"
 srun python generate_eval_data.py
