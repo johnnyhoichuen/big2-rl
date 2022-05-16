@@ -12,6 +12,8 @@ def load_models(model_path, model_type):
     """
     Loads a specified agent type (random, PPO or deep MC)
     """
+    # model_path = {'SOUTH': south, 'EAST': east, 'NORTH': north, 'WEST': west}
+
     players = {}
     for p in Position:
         if model_path[p.name] == 'random':
@@ -19,7 +21,8 @@ def load_models(model_path, model_type):
         elif model_path[p.name] == 'ppo':
             players[p.name] = PPOAgent()
         else:
-            players[p.name] = DMCAgent(model_path[p.name], model_type[p.name])
+            # 'prior' will be a path instead of name
+            players[p.name] = DMCAgent(model_path[p.name], model_type)
     return players
 
 
@@ -85,8 +88,18 @@ def evaluate(south, east, north, west, eval_data, num_workers, model_type):
 
     print('total games (play at all 4 positions in the same deck): ', total_games)
 
+    wp = {}
+    agg_ev = {}
+    avg_ev = {}
     for p in Position:
-        print("{}" .format(p.name))
-        print("Games won percentage: {}" .format(num_wins_by_position[p.name]/total_games))
-        print("Aggregate EV: {}, average EV per game: {}".format(ev_by_position[p.name],
-                                                                 ev_by_position[p.name]/total_games))
+        # print("{}".format(p.name))
+        wp[p.name] = num_wins_by_position[p.name] / total_games
+        agg_ev = ev_by_position[p.name]
+        avg_ev[p.name] = ev_by_position[p.name] / total_games
+        # print("Games won percentage: {}".format(wp[p.name]))
+        # print("Aggregate EV: {}, average EV per game: {}".format(ev_by_position[p.name],
+        #                                                          avg_ev))
+
+    print(f'WP: {wp}')
+    print(f'Aggregate EV: {agg_ev}')
+    print(f'Average EV: {avg_ev}')

@@ -11,6 +11,7 @@ if __name__ == '__main__':
     # parser.add_argument('--west', type=str, default='random')
 
     parser.add_argument('--train_opponent', type=str, help='opponent during training')
+    parser.add_argument('--model_type', type=str, help='specifying player\'s model type')
     parser.add_argument('--eval_opponent', type=str, default='random', help='opponent during evaluation')
     parser.add_argument('--frames_trained', type=str, help='number of frames trained')
 
@@ -27,27 +28,33 @@ if __name__ == '__main__':
     os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_device
 
-    if args.train_opponent == args.eval_opponent:
-        raise ValueError('train_opponent and eval_opponent cannot be the same')
+    # if args.train_opponent == args.eval_opponent:
+    #     raise ValueError('train_opponent and eval_opponent cannot be the same')
 
     agent_path = ''
     opponent = ''
+
+    # TODO: update these paths
     if args.train_opponent == 'ppo':
-        agent_path = f'big2rl_checkpoints/big2rl/_weights_{args.frames_trained}.ckpt'  # edit the number here
+        agent_path = f'big2rl_checkpoints/ppo/{args.model_type}_weights_{args.frames_trained}.ckpt'  # edit the number here
         # opponent = 'big2rl_checkpoints/prior-test/model.tar'
     elif args.train_opponent == 'prior':
-        agent_path = f'big2rl_checkpoints/prior-test/_weights_{args.frames_trained}.ckpt'  # edit the number here
+        agent_path = f'big2rl_checkpoints/prior-test/{args.model_type}_weights_{args.frames_trained}.ckpt'  # edit the number here
     elif args.train_opponent == 'random':
-        agent_path = f'big2rl_checkpoints/random/_weights_{args.frames_trained}.ckpt'  # edit the number here
+        agent_path = f'big2rl_checkpoints/random/{args.model_type}_weights_{args.frames_trained}.ckpt'  # edit the number here
     else:
         raise ValueError('Training opponent not specified')
+
+    print(f'agent path: {agent_path}')
 
     if args.eval_opponent == 'ppo':
         opponent = 'ppo'
     elif args.eval_opponent == 'prior':
         # pass path if it's prior DMC agent
         opponent_frames_trained = 1017600
-        opponent = f'big2rl_checkpoints/prior-test/_weights_{opponent_frames_trained}.ckpt'
+
+        # fixed the eval prior model as model_type=residual
+        opponent = f'big2rl_checkpoints/prior-test/residual_weights_{opponent_frames_trained}.ckpt'
         # opponent = 'big2rl_checkpoints/prior-test/model.tar'
     elif args.eval_opponent == 'random':
         opponent = 'random'
@@ -59,25 +66,4 @@ if __name__ == '__main__':
     args.north = opponent
     args.west = opponent
 
-    # # TODO remove
-    # # args.south = 'big2rl_checkpoints/prior-test/_weights_2451200.ckpt'  # should be .ckpt, can't be the tar file
-    # args.south = 'baselines/prior-model.tar'
-    # #args.south = 'big2rl_checkpoints/prior-test/model.tar'
-    # #args.south = 'big2rl_checkpoints/big2rl/model.tar'
-    # #args.south = 'ppo'
-    # #args.east = 'big2rl_checkpoints/big2rl/model.tar'
-    # #args.north = 'big2rl_checkpoints/big2rl/model.tar'
-    # #args.west = 'big2rl_checkpoints/big2rl/model.tar'
-    # #args.east = 'baselines/prior-model.tar'
-    # #args.north = 'baselines/prior-model.tar'
-    # #args.west = 'baselines/prior-model.tar'
-    # args.model_s = ''  # standard for now
-    # model_type = {'SOUTH': args.model_s, 'NORTH': args.model_n, 'EAST':args.model_e, 'WEST': args.model_w}
-    # args.east = 'ppo'
-    # args.north = 'ppo'
-    # args.west = 'ppo'
-    # if we make 4 PPOs play against each other, since policy is deterministic, so position will have EV 0
-
-    print(f'Agent using {agent_path}, opponent using ')
-
-    evaluate(args.south, args.east, args.north, args.west, args.eval_data, args.num_workers)
+    evaluate(args.south, args.east, args.north, args.west, args.eval_data, args.num_workers, args.model_type)
