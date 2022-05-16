@@ -94,7 +94,7 @@ def evaluate(south, east, north, west, eval_data, num_workers, model_type):
     for p in Position:
         # print("{}".format(p.name))
         wp[p.name] = num_wins_by_position[p.name] / total_games
-        agg_ev = ev_by_position[p.name]
+        agg_ev[p.name] = ev_by_position[p.name]
         avg_ev[p.name] = ev_by_position[p.name] / total_games
         # print("Games won percentage: {}".format(wp[p.name]))
         # print("Aggregate EV: {}, average EV per game: {}".format(ev_by_position[p.name],

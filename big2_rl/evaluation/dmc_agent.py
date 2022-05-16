@@ -16,8 +16,10 @@ class DMCAgent:
             self.model = Big2ModelConv()
         elif model_type == 'convres':
             self.model = Big2ModelConvRes()
-        else:
+        elif model_type == 'standard':
             self.model = Big2Model()
+        else:
+            raise ValueError('Invalid model type')
 
         model_state_dict = self.model.state_dict()
         if torch.cuda.is_available():
