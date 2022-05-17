@@ -1,3 +1,10 @@
+#!/bin/bash
+
+# for slurm only
+#SBATCH --job-name big2-prior
+#SBATCH --ntasks=1
+#SBATCH -p cpu-share
+#SBATCH -N 1 -n 1cd
 
 function evaluate() {
     train_opponent=$1
