@@ -11,39 +11,40 @@ function evaluate() {
     model=$2
     eval_opponent=$3
     frame_trained=$4
-    echo "\n-------------------------\n"
+    echo "\n-------------------------\n\n"
     echo "evaluating: (training with: $train_opponent, using model: $model, with $frame_trained frames) vs ($eval_opponent)"
     # for local computer
-    # python evaluate.py --model_type $model --train_opponent $train_opponent --eval_opponent $eval_opponent --frames_trained $frame_trained
+     python evaluate.py --model_type $model --train_opponent $train_opponent --eval_opponent $eval_opponent --frames_trained $frame_trained
 
     # for slurm
-    srun python evaluate.py --model_type $model --train_opponent $train_opponent --eval_opponent $eval_opponent --frames_trained $frame_trained
-    echo "\n-------------------------\n"
+#    srun python evaluate.py --model_type $model --train_opponent $train_opponent --eval_opponent $eval_opponent --frames_trained $frame_trained
+#    echo "\n-------------------------\n"
 }
 
 # generate eval data once
+python generate_eval_data.py --num_games 500
 # srun python generate_eval_data.py --num_games 1000
 
-# echo "============================================ \n\n\n"
-# echo "eval opponent = ppo \n\n"
+ echo "============================================"
+ echo "eval opponent = ppo"
 
-# ## training with ppo and eval with ppo
-# evaluate 'ppo' 'standard' 'ppo' 2009600
-# evaluate 'ppo' 'residual' 'ppo' 2006400
-# evaluate 'ppo' 'conv' 'ppo' 2009600
-# evaluate 'ppo' 'convres' 'ppo' 2009600
+ ## training with ppo and eval with ppo
+ evaluate 'ppo' 'standard' 'ppo' 2009600
+ evaluate 'ppo' 'residual' 'ppo' 2006400
+ evaluate 'ppo' 'conv' 'ppo' 2009600
+ evaluate 'ppo' 'convres' 'ppo' 2009600
 
-# ## training with prior and eval with ppo
-# evaluate 'prior' 'standard' 'ppo' 2009600
-# evaluate 'prior' 'residual' 'ppo' 2595200
-# evaluate 'prior' 'conv' 'ppo' 2009600
-# evaluate 'prior' 'convres' 'ppo' 2009600
+ ## training with prior and eval with ppo
+ evaluate 'prior' 'standard' 'ppo' 2009600
+ evaluate 'prior' 'residual' 'ppo' 2595200
+ evaluate 'prior' 'conv' 'ppo' 2009600
+ evaluate 'prior' 'convres' 'ppo' 2009600
 
-# ## training with random and eval with ppo
-# evaluate 'random' 'standard' 'ppo' 2009600
-# evaluate 'random' 'residual' 'ppo' 4851200
-# evaluate 'random' 'conv' 'ppo' 2009600
-# evaluate 'random' 'convres' 'ppo' 2009600
+ ## training with random and eval with ppo
+ evaluate 'random' 'standard' 'ppo' 2009600
+ evaluate 'random' 'residual' 'ppo' 4851200
+ evaluate 'random' 'conv' 'ppo' 2009600
+ evaluate 'random' 'convres' 'ppo' 2009600
 
 
 
@@ -95,23 +96,23 @@ function evaluate() {
 
 
 
-echo "============================================ \n\n\n"
-echo "eval opponent = random \n\n"
-
-## training with ppo and eval with random
-evaluate 'ppo' 'standard' 'random' 2009600
-evaluate 'ppo' 'residual' 'random' 2595200
-evaluate 'ppo' 'conv' 'random' 2009600
-evaluate 'ppo' 'convres' 'random' 2009600
-
-## training with prior and eval with random
-evaluate 'prior' 'standard' 'random' 2009600
-evaluate 'prior' 'residual' 'random' 2595200
-evaluate 'prior' 'conv' 'random' 2009600
-evaluate 'prior' 'convres' 'random' 2009600
-
-## training with random and eval with random
-evaluate 'random' 'standard' 'random' 2009600
-evaluate 'random' 'residual' 'random' 4851200
-evaluate 'random' 'conv' 'random' 2009600
-evaluate 'random' 'convres' 'random' 2009600
+#echo "============================================ \n\n\n"
+#echo "eval opponent = random \n\n"
+#
+### training with ppo and eval with random
+#evaluate 'ppo' 'standard' 'random' 2009600
+#evaluate 'ppo' 'residual' 'random' 2006400
+#evaluate 'ppo' 'conv' 'random' 2009600
+#evaluate 'ppo' 'convres' 'random' 2009600
+#
+### training with prior and eval with random
+#evaluate 'prior' 'standard' 'random' 2009600
+#evaluate 'prior' 'residual' 'random' 2595200
+#evaluate 'prior' 'conv' 'random' 2009600
+#evaluate 'prior' 'convres' 'random' 2009600
+#
+### training with random and eval with random
+#evaluate 'random' 'standard' 'random' 2009600
+#evaluate 'random' 'residual' 'random' 4851200
+#evaluate 'random' 'conv' 'random' 2009600
+#evaluate 'random' 'convres' 'random' 2009600
