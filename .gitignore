@@ -12,5 +12,5 @@ big2rl_checkpoints/big2rl/out.log
 **/slurm-*.out
 slurm-*.out
 slurm_report/big2rl.yml
-eval_data.pkl
+eval_*.pkl
 main.py

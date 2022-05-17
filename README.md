@@ -21,16 +21,16 @@ cd big2-rl
 pip3 install -r requirements.txt
 ```
 
-## Training [TODO]
+## Training
 
 ### Using SLURM
 Use the following commands to schedule jobs in your computer cluster
-sbcppo (='sbatch slurm_cpu_vs_ppo.sh')
-sbcpri (='sbatch slurm_cpu_vs_prior.sh')
-sbcran (='sbatch slurm_cpu_vs_rand.sh')
-# sbg (='sbatch slurm_gpu.sh')
-sq (='squeue')
-lo (='./latest_slurm_out.sh')
+```
+cd slurm_report
+sbatch slurm_cpu_vs_ppo.sh
+sbatch slurm_cpu_vs_prior.sh
+sbatch slurm_cpu_vs_rand.sh
+```
 
 ###
 To use GPU for training, run
@@ -98,14 +98,16 @@ For more customized configuration of training, see the following optional argume
 --alpha ALPHA         RMSProp smoothing constant
 --momentum MOMENTUM   RMSProp momentum
 --epsilon EPSILON     RMSProp epsilon
+--model_type MODEL_TYPE
+                    Model architecture
 
 ```
 
 ## Evaluation
 The evaluation can be performed with GPU or CPU (GPU will be much faster). Pretrained model is available in `baselines/`. The performance is evaluated through self-play.
-*   [random](big2_rl/evaluation/random_agent.py): agents that play randomly (uniformly)
-*   [ppo](big2_rl/evaluation/ppo_agent.py): agents based on Charlesworth's PPO model
-*   [prior](big2_rl/evaluation/dmc_agent.py): evaluate against DMC agents trained for some number of iterations
+* [ppo](big2_rl/evaluation/ppo_agent.py): agents based on Charlesworth's PPO model
+* [prior](big2_rl/evaluation/dmc_agent.py): evaluate against DMC agents trained for some number of iterations
+* [random](big2_rl/evaluation/random_agent.py): agents that play randomly (uniformly)
 
 ### Step 1: Generate evaluation data
 ```
@@ -128,13 +130,9 @@ Some important hyperparameters are as follows.
 * `--num_workers`: how many subprocesses will be used to run evaluation data
 * `--gpu_device`: which GPU to use. It will use CPU by default
 
-For example, the following command evaluates performance of a DMC Agent trained for 200 frames against random agents in all other positions
+For example, the following command evaluates performance of a standard DMC Agent trained with PPO for 2000000 frames against random agents in all other positions in evaluation
 ```
-python3 evaluate.py --south baselines/weights_200.ckpt --east random --west random --north random
-```
-The following command evaluates performance of DMC Agent trained for 200 frames at south and east positions, but trained for 4000 frames at north, and 10000 frames at west.
-```
-python3 evaluate.py --south baselines/weights_200.ckpt --east baselines/weights_200.ckpt --west baselines/weights_10000.ckpt --north baselines/weights_4000.ckpt
+python evaluate.py --model_type 'standard' --train_opponent 'ppo' --eval_opponent 'random' --frames_trained 2000000
 ```
 By default, our model will be saved in `big2rl_checkpoints/big2rl` every 10 minutes.
 
@@ -156,10 +154,8 @@ You can also modify `settings.py` before training, evaluation or play (change or
 *   [Johnny Cheng](https://github.com/johnnyhoichuen)
 
 ## Cite this Work
-If you find this project helpful in your research, please cite our paper:
+If you find this project helpful in your research, please cite our work
 
-TODO
-
-## Acknowledgments [TODO incomplete]
-*   Zha, Daochen et al. “DouZero: Mastering DouDizhu with Self-Play Deep Reinforcement Learning.” ICML (2021).
-
+## Acknowledgments
+* Zha, Daochen et al. “DouZero: Mastering DouDizhu with Self-Play Deep Reinforcement Learning.” ICML (2021). 
+* H. Charlesworth. “Application of Self-Play Reinforcement Learning to a Four-Player Game of Imperfect Information”. (2018)
