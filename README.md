@@ -59,7 +59,7 @@ The following command only runs actors on CPU:
 ```
 python3 train.py --actor_device_cpu
 ```
-For more customized configuration of training, see the following optional arguments: [TODO add the rest]
+For more customized configuration of training, see the following optional arguments:
 ```
 --xpid XPID           Experiment id (default: big2rl)
 --save_interval SAVE_INTERVAL
@@ -117,20 +117,20 @@ Some important hyperparameters are as follows.
 *   `--output`: where the pickled data will be saved
 *   `--num_games`: how many random games will be generated, default 10000
 
-### Step 2: Self-Play
+### Step 2: Evaluation & Self-Play
 ```
 python3 evaluate.py
 ```
 Some important hyperparameters are as follows.
-* `--south`: which agent will play as the South player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
-* `--east`: which agent will play as the East player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
-* `--north`: which agent will play as the North player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
-* `--west`: which agent will play as the West player, which can be random, PPO, or the path of the pre-trained DMC model. Accepts both .ckpt and .tar
-* `--eval_data`: the pickle file that contains evaluation data
+* `--model_type`: the model architecture to use (standard, convres, convolutional, residual)
+* `--train_opponent`: which agent the DMC agent will be trained against (ppo, random, or a prior agent). Due to symmetry, the trainable agent is placed in South and all other positions are occupied by copies of the same train\_opponent agent.
+* `--eval_opponent`: which agent the DMC agent will be evaluated against (ppo, random, or a prior agent). Due to symmetry, the trained DMC agent is placed in South and all other positions are occupied by copies of the same eval\_opponent agent.
+* `--frames_trained`: the number of frames the trainable DMC agent is trained for.
+* `--eval_data`: the pickle file that contains evaluation data. generated from generate\_eval\_data.py
 * `--num_workers`: how many subprocesses will be used to run evaluation data
 * `--gpu_device`: which GPU to use. It will use CPU by default
 
-For example, the following command evaluates performance of a standard DMC Agent trained with PPO for 2000000 frames against random agents in all other positions in evaluation
+For example, the following command evaluates performance of a standard DMC Agent trained with PPO for 2000000 frames against random agents in all other positions in evaluation.
 ```
 python evaluate.py --model_type 'standard' --train_opponent 'ppo' --eval_opponent 'random' --frames_trained 2000000
 ```
