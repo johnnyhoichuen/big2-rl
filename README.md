@@ -1,5 +1,7 @@
 # Big Two with Deep Reinforcement Learning
 
+[![DOI](https://zenodo.org/badge/467116828.svg)](https://zenodo.org/badge/latestdoi/467116828)
+
 Big2-RL is a reinforcement learning framework for [Big Two](https://en.wikipedia.org/wiki/Big_two) (Cantonese: 鋤大弟), a four-player card-shedding game popular in many Southeast Asia countries played with a standard 52-card deck without jokers. Our framework uses multiprocessing and is heavily inspired by DouZero and TorchBeast (see Acknowledgements).
 
 Each player's goal is to empty their hand of all cards before other players. Cards are shed (or played) through tricks consisting of specific hand types (singles, pairs, triples and five-card hands), and each player must either follow the trick by playing a higher-ranked hand of the same type as the person who led the trick, or pass. If all other players pass, the person who won the trick "leads" the next trick and chooses which hand type to play. When one player empties their hand (the winner), the remaining players are penalised based on the number of cards left in their hands, and these penalties are awarded to the winner.
@@ -13,7 +15,8 @@ In this work, we explore a variety of model structures and evaluate their respec
 [Paper](./DRL%20with%20Big2.pdf)
 
 If you find this project helpful in your research, please cite our work.
-`
+
+```
 @software{big2drl,
   author = {J. Chow and J. Cheng},
   doi = {10.5281/zenodo.7811506},
@@ -22,7 +25,7 @@ If you find this project helpful in your research, please cite our work.
   version = {1.0.0},
   year = {2022}
 }
-`
+```
 
 ## Installation
 The training code is designed for GPUs. Thus, you need to first install CUDA if you want to train models. You may refer to [this guide](https://docs.nvidia.com/cuda/index.html#installation-guides). For evaluation, CUDA is optional and you can use CPU for evaluation.
