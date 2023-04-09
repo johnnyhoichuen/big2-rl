@@ -6,7 +6,23 @@ Each player's goal is to empty their hand of all cards before other players. Car
 
 In contrast to Dou Dizhu, which has clearly defined roles for each player, collaboration in Big Two is much more fluid. For instance, it is common for players to pass when the opponent preceding them has just played in the hopes of preserving higher ranked cards for later and having the opportunity to play second in case the player before them gets to lead the next trick. Conversely, players tend to play cards if the player after them has played because if the player following them leads the next trick, they will have to play last on the subsequent round. Additionally, Dou Dizhu has no additional penalty for having lots of unplayed cards, whereas Big Two is inherently more risky since although more cards usually means more manoeuvrability, it also incurs a higher penalty if they lose, and vice versa.
 
-In this work, we explore a variety of model structures and evaluate their respective performances. Please read our project report [here](./DRL%20with%20Big2.pdf) for more details.
+In this work, we explore a variety of model structures and evaluate their respective performances. Please read our paper for more details.
+
+## Paper for this work
+
+[Paper](./DRL%20with%20Big2.pdf)
+
+If you find this project helpful in your research, please cite our work.
+`
+@software{big2drl,
+  author = {J. Chow and J. Cheng},
+  doi = {10.5281/zenodo.7811506},
+  title = {{Deep Reinforcement Learning for Big Two}},
+  url = {https://github.com/johnnyhoichuen/big2-rl/},
+  version = {1.0.0},
+  year = {2022}
+}
+`
 
 ## Installation
 The training code is designed for GPUs. Thus, you need to first install CUDA if you want to train models. You may refer to [this guide](https://docs.nvidia.com/cuda/index.html#installation-guides). For evaluation, CUDA is optional and you can use CPU for evaluation.
@@ -152,9 +168,6 @@ You can also modify `settings.py` before training, evaluation or play (change or
 ## Core Team
 *   [Jasper Chow](https://github.com/jchow-ust)
 *   [Johnny Cheng](https://github.com/johnnyhoichuen)
-
-## Cite this Work
-If you find this project helpful in your research, please cite our work.
 
 ## Acknowledgments
 * Zha, Daochen et al. “DouZero: Mastering DouDizhu with Self-Play Deep Reinforcement Learning.” ICML (2021). 
